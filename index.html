@@ -1,0 +1,3409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Portfolio interactif d'Aymen Louraghi — Étudiant BTS SIO SISR passionné par les réseaux et la cybersécurité.">
+<meta name="theme-color" content="#0a0e27">
+<meta name="author" content="Aymen Louraghi">
+<title>Aymen Louraghi — Portfolio OS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   CSS VARIABLES & RESET
+   ============================================ */
+:root {
+  --primary: #00d4ff;
+  --primary-dark: #00a0c4;
+  --bg-dark: #0a0e27;
+  --bg-darker: #060918;
+  --bg-card: rgba(15, 20, 50, 0.85);
+  --bg-window: #1e1e2e;
+  --bg-titlebar: #181825;
+  --bg-taskbar: rgba(10, 14, 39, 0.92);
+  --text: #e0e0e0;
+  --text-muted: #888;
+  --text-bright: #ffffff;
+  --accent-green: #00e676;
+  --accent-red: #ff5252;
+  --accent-yellow: #ffc107;
+  --accent-orange: #ff9800;
+  --accent-purple: #bb86fc;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+  --taskbar-h: 52px;
+  --z-lock: 10000;
+  --z-window: 100;
+  --z-taskbar: 9000;
+  --z-start: 9500;
+  --z-notification: 9800;
+  --z-context: 9900;
+  --z-fire: 99998;
+  --z-glitch: 99999;
+  --z-glitch-text: 100000;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  font-family: var(--font);
+  background: var(--bg-darker);
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+::selection { background: var(--primary); color: var(--bg-dark); }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+button:focus-visible, input:focus-visible { outline-offset: 0; }
+
+/* ============================================
+   BOOT SEQUENCE
+   ============================================ */
+#bootScreen {
+  position:fixed; inset:0;
+  z-index: 100001;
+  background: #000;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:1.5rem;
+  transition: opacity 0.6s ease;
+}
+#bootScreen.hidden {
+  opacity:0;
+  pointer-events:none;
+}
+.boot-logo {
+  font-size:3rem;
+  animation: bootPulse 1.2s ease-in-out infinite;
+}
+@keyframes bootPulse {
+  0%, 100% { opacity:0.4; transform:scale(0.95); }
+  50% { opacity:1; transform:scale(1.05); }
+}
+.boot-text {
+  font-family: var(--font-mono);
+  font-size:0.8rem;
+  color: var(--primary);
+  letter-spacing:1px;
+}
+.boot-progress {
+  width:200px; height:3px;
+  background: rgba(255,255,255,0.1);
+  border-radius:2px;
+  overflow:hidden;
+}
+.boot-progress-fill {
+  height:100%;
+  background: var(--primary);
+  border-radius:2px;
+  animation: bootLoad 2s ease-in-out forwards;
+}
+@keyframes bootLoad {
+  0% { width:0%; }
+  30% { width:35%; }
+  60% { width:65%; }
+  80% { width:85%; }
+  100% { width:100%; }
+}
+
+/* ============================================
+   LOCK SCREEN
+   ============================================ */
+#lockScreen {
+  position: fixed; inset:0;
+  z-index: var(--z-lock);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0d1130 100%);
+  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.6s ease;
+}
+#lockScreen.unlocked {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+#lockScreen::before {
+  content:'';
+  position:absolute; inset:0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="g1" cx="30%" cy="40%"><stop offset="0%" stop-color="%2300d4ff" stop-opacity="0.15"/><stop offset="100%" stop-color="transparent"/></radialGradient><radialGradient id="g2" cx="70%" cy="60%"><stop offset="0%" stop-color="%23bb86fc" stop-opacity="0.1"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs><rect fill="url(%23g1)" width="1000" height="1000"/><rect fill="url(%23g2)" width="1000" height="1000"/></svg>');
+  background-size: cover;
+  filter: blur(0px);
+}
+
+.lock-time {
+  position: relative; z-index:1;
+  font-size: clamp(4rem, 10vw, 7rem);
+  font-weight: 300;
+  color: var(--text-bright);
+  letter-spacing: 2px;
+  text-shadow: 0 0 40px rgba(0,212,255,0.3);
+}
+.lock-date {
+  position:relative; z-index:1;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: var(--text-muted);
+  margin-bottom: 3rem;
+  text-transform: capitalize;
+}
+
+.lock-profile {
+  position:relative; z-index:1;
+  display:flex; flex-direction:column;
+  align-items:center; gap:1rem;
+}
+.lock-avatar {
+  width:100px; height:100px;
+  border-radius:50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:2.5rem; font-weight:700;
+  color: var(--bg-dark);
+  box-shadow: 0 0 30px rgba(0,212,255,0.3);
+  border: 3px solid rgba(255,255,255,0.15);
+}
+.lock-username {
+  font-size:1.3rem; font-weight:500;
+  color: var(--text-bright);
+}
+
+.lock-action {
+  position:relative; z-index:1;
+  margin-top: 1.5rem;
+  display: flex; flex-direction:column;
+  align-items:center; gap:0.8rem;
+}
+.lock-input-wrapper {
+  display:flex; gap:0;
+  border-radius: 25px;
+  overflow:hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  transition: border-color 0.3s;
+}
+.lock-input-wrapper:has(.lock-input.shake) {
+  border-color: var(--accent-red);
+}
+.lock-input.shake {
+  animation: shakeInput 0.4s ease;
+}
+@keyframes shakeInput {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+.lock-input {
+  background:transparent; border:none; outline:none;
+  color: var(--text);
+  padding: 0.7rem 1.2rem;
+  font-size:0.9rem;
+  width:200px;
+  font-family: var(--font);
+}
+.lock-input::placeholder { color: var(--text-muted); }
+.lock-btn {
+  padding: 0.7rem 1.5rem;
+  background: var(--primary);
+  color: var(--bg-dark);
+  border:none; cursor:pointer;
+  font-weight:600; font-size:0.85rem;
+  font-family: var(--font);
+  transition: background 0.3s;
+}
+.lock-btn:hover { background: var(--primary-dark); }
+
+.lock-hint {
+  font-size:0.75rem;
+  color: var(--text-muted);
+  opacity:0.6;
+}
+
+/* ============================================
+   DESKTOP
+   ============================================ */
+#desktop {
+  position: fixed; inset:0;
+  background: linear-gradient(160deg, #0a0e27 0%, #0d1442 30%, #0a0e27 60%, #111640 100%);
+  overflow: hidden;
+}
+#desktop::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 800px 600px at 20% 30%, rgba(0,212,255,0.08), transparent),
+    radial-gradient(ellipse 600px 500px at 75% 70%, rgba(187,134,252,0.06), transparent),
+    radial-gradient(ellipse 400px 400px at 50% 50%, rgba(0,230,118,0.03), transparent);
+  pointer-events:none;
+}
+
+/* Animated particles */
+.particles {
+  position:absolute; inset:0; overflow:hidden; pointer-events:none;
+}
+.particle {
+  position:absolute;
+  width:2px; height:2px;
+  background: var(--primary);
+  border-radius:50%;
+  opacity:0;
+  animation: floatParticle linear infinite;
+}
+@keyframes floatParticle {
+  0% { opacity:0; transform: translateY(100vh) scale(0); }
+  10% { opacity:0.6; }
+  90% { opacity:0.6; }
+  100% { opacity:0; transform: translateY(-10vh) scale(1); }
+}
+
+/* ============================================
+   DESKTOP ICONS
+   ============================================ */
+.desktop-icons {
+  position:absolute;
+  top: 20px; left: 20px;
+  display: flex; flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+.desktop-icon {
+  display:flex; flex-direction:column;
+  align-items:center; gap:6px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  width: 90px;
+  text-align:center;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+.desktop-icon:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.1);
+}
+.desktop-icon.selected {
+  background: rgba(0,212,255,0.12);
+  border-color: rgba(0,212,255,0.3);
+}
+.desktop-icon-img {
+  width:48px; height:48px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+.desktop-icon-label {
+  font-size:0.72rem;
+  color: var(--text-bright);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  line-height:1.3;
+  word-break: break-word;
+}
+
+/* ============================================
+   TASKBAR
+   ============================================ */
+#taskbar {
+  position:fixed; bottom:0; left:0; right:0;
+  height: var(--taskbar-h);
+  background: var(--bg-taskbar);
+  backdrop-filter: blur(30px);
+  border-top: 1px solid var(--border);
+  display:flex; align-items:center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: var(--z-taskbar);
+}
+.taskbar-left {
+  display:flex; align-items:center; gap: 2px;
+}
+.taskbar-center {
+  display:flex; align-items:center; gap: 2px;
+  position:absolute; left:50%; transform:translateX(-50%);
+}
+.taskbar-right {
+  display:flex; align-items:center; gap: 8px;
+  font-size:0.75rem; color: var(--text-muted);
+}
+
+.taskbar-btn {
+  display:flex; align-items:center; justify-content:center;
+  height: 40px; min-width: 44px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color: var(--text);
+  font-size:1.1rem;
+  transition: background 0.2s;
+  font-family: var(--font);
+  position:relative;
+}
+.taskbar-btn:hover { background: rgba(255,255,255,0.08); }
+.taskbar-btn.active {
+  background: rgba(255,255,255,0.06);
+}
+.taskbar-btn.active::after {
+  content:'';
+  position:absolute; bottom:2px;
+  left:50%; transform:translateX(-50%);
+  width:20px; height:3px;
+  background: var(--primary);
+  border-radius:2px;
+}
+.taskbar-btn.start-btn {
+  font-size:1.3rem;
+}
+
+.taskbar-clock {
+  display:flex; flex-direction:column;
+  align-items:flex-end;
+  line-height:1.3;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+}
+.taskbar-clock:hover { background: rgba(255,255,255,0.06); }
+.taskbar-time { font-size:0.8rem; color: var(--text); }
+.taskbar-date-small { font-size:0.68rem; color: var(--text-muted); }
+
+.taskbar-tray {
+  display:flex; align-items:center; gap:6px;
+  padding: 0 6px;
+  font-size:0.85rem;
+}
+
+/* ============================================
+   START MENU
+   ============================================ */
+#startMenu {
+  position:fixed;
+  bottom: calc(var(--taskbar-h) + 12px);
+  left: 50%; transform: translateX(-50%) scale(0.95);
+  width: 600px; max-width: calc(100vw - 24px);
+  background: var(--bg-taskbar);
+  backdrop-filter: blur(40px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: var(--z-start);
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.25s, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 1.5rem;
+}
+#startMenu.open {
+  opacity:1;
+  pointer-events:all;
+  transform: translateX(-50%) scale(1);
+}
+
+.start-search {
+  width:100%;
+  padding: 0.7rem 1rem;
+  border-radius: 25px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  font-family: var(--font);
+  font-size:0.85rem;
+  outline:none;
+  margin-bottom: 1.2rem;
+}
+.start-search::placeholder { color: var(--text-muted); }
+.start-search:focus { border-color: var(--primary); }
+
+.start-section-title {
+  font-size:0.8rem; font-weight:600;
+  color: var(--text-muted);
+  margin-bottom:0.8rem;
+  letter-spacing:0.5px;
+}
+.start-apps {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap:6px;
+  margin-bottom: 1.2rem;
+}
+.start-app {
+  display:flex; flex-direction:column;
+  align-items:center; gap:6px;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  transition: background 0.2s;
+}
+.start-app:hover { background: rgba(255,255,255,0.08); }
+.start-app-icon { font-size:1.6rem; }
+.start-app-label { font-size:0.7rem; color: var(--text); text-align:center; }
+
+.start-user {
+  display:flex; align-items:center; gap:10px;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.start-user-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.8rem; font-weight:700; color: var(--bg-dark);
+}
+.start-user-name { font-size:0.8rem; color: var(--text); }
+
+/* ============================================
+   WINDOW SYSTEM
+   ============================================ */
+.os-window {
+  position: absolute;
+  min-width: 400px;
+  min-height: 300px;
+  background: var(--bg-window);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: windowOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes windowOpen {
+  to { opacity:1; transform: scale(1); }
+}
+.os-window.closing {
+  animation: windowClose 0.25s ease forwards;
+}
+@keyframes windowClose {
+  to { opacity:0; transform: scale(0.92); }
+}
+.os-window.focused {
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.1);
+}
+.os-window.minimized {
+  transform: scale(0.1) translateY(100vh);
+  opacity:0;
+  pointer-events:none;
+  transition: transform 0.35s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.25s ease;
+}
+.os-window:not(.minimized) {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, box-shadow 0.2s;
+}
+.os-window.maximized {
+  top: 0 !important; left: 0 !important;
+  width: 100% !important;
+  height: calc(100% - var(--taskbar-h)) !important;
+  border-radius: 0;
+}
+
+/* Title bar */
+.window-titlebar {
+  display:flex; align-items:center;
+  height: 38px; min-height:38px;
+  padding: 0 12px;
+  background: var(--bg-titlebar);
+  cursor: default;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.window-titlebar-icon { font-size:0.9rem; }
+.window-titlebar-text {
+  flex:1;
+  font-size:0.78rem;
+  color: var(--text-muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.window-controls {
+  display:flex; gap:0;
+  margin-left:auto;
+}
+.window-ctrl-btn {
+  display:flex; align-items:center; justify-content:center;
+  width:36px; height:30px;
+  border:none; background:transparent;
+  color: var(--text-muted);
+  cursor:pointer;
+  font-size:0.75rem;
+  transition: background 0.15s, color 0.15s;
+  border-radius: 4px;
+}
+.window-ctrl-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.window-ctrl-btn.close-btn:hover { background: var(--accent-red); color:#fff; }
+
+/* Window content */
+.window-body {
+  flex:1;
+  overflow: hidden;
+  padding: 0;
+  position:relative;
+  min-height:0;
+}
+
+/* Resize handle */
+.resize-handle {
+  position:absolute; bottom:0; right:0;
+  width:16px; height:16px;
+  cursor:nwse-resize;
+}
+
+/* ============================================
+   WINDOW: ACCUEIL (Browser)
+   ============================================ */
+.browser-toolbar {
+  display:flex; align-items:center;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.2);
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.browser-nav-btn {
+  width:28px; height:28px;
+  border-radius:50%;
+  border:none;
+  background:transparent;
+  color: var(--text-muted);
+  cursor:pointer;
+  font-size:0.8rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.browser-nav-btn:hover { background: rgba(255,255,255,0.08); }
+.browser-url {
+  flex:1;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size:0.75rem;
+  font-family: var(--font);
+  outline:none;
+}
+
+.accueil-content {
+  padding: 2.5rem;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  min-height: 100%;
+  text-align:center;
+  overflow-y:auto;
+}
+.accueil-greeting {
+  font-size:0.9rem;
+  color: var(--primary);
+  font-weight:600;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:0.8rem;
+}
+.accueil-title {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight:700;
+  color: var(--text-bright);
+  margin-bottom:1rem;
+  line-height:1.3;
+}
+.accueil-title .highlight { color: var(--primary); }
+
+.terminal-text {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--accent-green);
+  background: rgba(0,0,0,0.4);
+  padding: 1.2rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0,230,118,0.15);
+  max-width: 600px;
+  width:100%;
+  text-align:left;
+  min-height: 80px;
+  position:relative;
+}
+.terminal-text .cursor {
+  display:inline-block;
+  width:8px; height:1.1em;
+  background: var(--accent-green);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left:2px;
+}
+@keyframes blink { 50% { opacity:0; } }
+
+.terminal-text .prompt { color: var(--primary); }
+
+.accueil-tags {
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:1.5rem;
+  justify-content:center;
+}
+.accueil-tag {
+  padding: 5px 14px;
+  border-radius:20px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--primary);
+  font-size:0.75rem;
+  font-weight:500;
+}
+
+/* ============================================
+   WINDOW: À PROPOS (Code Editor)
+   ============================================ */
+.editor-container {
+  display:flex; height:100%;
+}
+.editor-sidebar {
+  width:46px;
+  background: rgba(0,0,0,0.3);
+  display:flex; flex-direction:column;
+  align-items:center;
+  padding-top:10px; gap:14px;
+  border-right: 1px solid var(--border);
+}
+.editor-sidebar-icon {
+  width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  color: var(--text-muted);
+  font-size:0.85rem;
+  cursor:pointer;
+  border-radius:4px;
+  transition: color 0.2s;
+}
+.editor-sidebar-icon:hover { color: var(--text); }
+.editor-sidebar-icon.active {
+  color: var(--text-bright);
+  border-left: 2px solid var(--primary);
+}
+
+.editor-tabs {
+  display:flex;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+}
+.editor-tab {
+  padding: 8px 16px;
+  font-size:0.75rem;
+  color: var(--text-muted);
+  cursor:pointer;
+  border-right: 1px solid var(--border);
+  display:flex; align-items:center; gap:6px;
+  transition: background 0.2s;
+}
+.editor-tab.active {
+  background: var(--bg-window);
+  color: var(--text);
+  border-bottom: 1px solid var(--primary);
+  margin-bottom:-1px;
+}
+
+.editor-main { flex:1; display:flex; flex-direction:column; }
+.editor-code {
+  flex:1; overflow:auto;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height:1.7;
+  counter-reset: line;
+}
+.code-line {
+  display:flex; gap:1rem;
+}
+.code-line::before {
+  counter-increment: line;
+  content: counter(line);
+  color: var(--text-muted);
+  opacity:0.4;
+  min-width:2.5em;
+  text-align:right;
+  font-size:0.78rem;
+}
+.code-line .kw { color: var(--accent-purple); }
+.code-line .str { color: #ce9178; }
+.code-line .fn { color: #dcdcaa; }
+.code-line .cm { color: #6a9955; }
+.code-line .num { color: #b5cea8; }
+.code-line .prop { color: #9cdcfe; }
+.code-line .type { color: #4ec9b0; }
+
+/* ============================================
+   WINDOW: RÉALISATIONS (File Explorer)
+   ============================================ */
+.explorer-toolbar {
+  display:flex; align-items:center;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid var(--border);
+  gap:8px;
+}
+.explorer-breadcrumb {
+  font-size:0.75rem;
+  color: var(--text-muted);
+  display:flex; align-items:center; gap:4px;
+}
+.explorer-breadcrumb span { color: var(--text); cursor:pointer; }
+.explorer-breadcrumb span:hover { color: var(--primary); }
+
+.explorer-content {
+  display:flex; height: calc(100% - 38px);
+}
+.explorer-files {
+  flex:1;
+  padding: clamp(0.5rem, 1.5vw, 1.5rem);
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(80px, 10vw, 150px), 1fr));
+  gap: clamp(6px, 1vw, 14px);
+  align-content: start;
+  overflow:auto;
+}
+.file-item {
+  display:flex; flex-direction:column;
+  align-items:center; gap: clamp(4px, 0.8vw, 10px);
+  padding: clamp(8px, 1.5vw, 18px) clamp(4px, 0.8vw, 12px);
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  transition: background 0.2s;
+  text-align:center;
+  border: 1px solid transparent;
+}
+.file-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border);
+}
+.file-item.selected {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+}
+.file-icon { font-size: clamp(1.5rem, 3vw, 3rem); }
+.file-name {
+  font-size: clamp(0.6rem, 1vw, 0.85rem); color: var(--text);
+  line-height:1.3;
+  word-break:break-word;
+}
+
+.explorer-detail {
+  width: 0;
+  border-left: 1px solid var(--border);
+  padding: 0;
+  overflow:hidden;
+  background: rgba(0,0,0,0.1);
+  display:flex;
+  flex-direction:column; gap:0.8rem;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
+  opacity:0;
+}
+.explorer-detail.open {
+  width: clamp(220px, 30vw, 350px);
+  padding: clamp(0.8rem, 1.5vw, 1.5rem);
+  overflow:auto;
+  opacity:1;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease, opacity 0.2s 0.1s ease;
+}
+.detail-header {
+  display:flex; align-items:center; gap: clamp(6px, 1vw, 12px);
+}
+.detail-icon { font-size: clamp(1.5rem, 2.5vw, 2.5rem); }
+.detail-title { font-size: clamp(0.85rem, 1.3vw, 1.2rem); font-weight:600; color: var(--text-bright); }
+.detail-meta {
+  font-size: clamp(0.65rem, 0.9vw, 0.8rem); color: var(--text-muted);
+  display:flex; flex-direction:column; gap:4px;
+  padding: clamp(0.4rem, 0.8vw, 0.8rem) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.detail-desc {
+  font-size: clamp(0.7rem, 1vw, 0.9rem); color: var(--text);
+  line-height:1.6;
+}
+.detail-tags {
+  display:flex; flex-wrap:wrap; gap: clamp(4px, 0.6vw, 8px);
+}
+.detail-tag {
+  padding: clamp(2px, 0.4vw, 4px) clamp(6px, 1vw, 12px);
+  border-radius:12px;
+  background: rgba(0,212,255,0.1);
+  color: var(--primary);
+  font-size: clamp(0.6rem, 0.85vw, 0.75rem);
+}
+
+/* ============================================
+   WINDOW: CONTACT (Outlook-style Mail App)
+   ============================================ */
+.mail-container { display:flex; height:100%; }
+.mail-sidebar-left {
+  width:200px;
+  background: rgba(0,0,0,0.25);
+  border-right: 1px solid var(--border);
+  padding:0;
+  display:flex; flex-direction:column;
+}
+.mail-sidebar-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+  font-size:0.85rem; font-weight:600;
+  color: var(--text-bright);
+}
+.mail-compose-btn {
+  margin: 10px 12px;
+  padding: 9px 16px;
+  background: var(--primary);
+  color: var(--bg-dark);
+  border:none; border-radius: 6px;
+  font-weight:600; font-size:0.8rem;
+  cursor:pointer;
+  font-family: var(--font);
+  transition: background 0.2s;
+  display:flex; align-items:center; gap:6px;
+}
+.mail-compose-btn:hover { background: var(--primary-dark); }
+.mail-folders {
+  padding: 4px 8px;
+  display:flex; flex-direction:column; gap:2px;
+  flex:1;
+}
+.mail-folder {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size:0.78rem;
+  color: var(--text-muted);
+  cursor:pointer;
+  display:flex; align-items:center; gap:8px;
+  transition: background 0.2s;
+}
+.mail-folder:hover { background: rgba(255,255,255,0.06); }
+.mail-folder.active {
+  background: rgba(0,120,212,0.2);
+  color: #0078d4;
+}
+.mail-folder-badge {
+  margin-left:auto;
+  background: #0078d4;
+  color: #fff;
+  font-size:0.65rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight:600;
+}
+.mail-sidebar-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+  font-size:0.72rem;
+  color: var(--text-muted);
+}
+.mail-sidebar-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:700; color: var(--bg-dark);
+}
+
+/* Mail main area */
+.mail-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.mail-toolbar {
+  display:flex; align-items:center; gap:6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.1);
+}
+.mail-toolbar-btn {
+  padding: 5px 12px;
+  border:none; border-radius:4px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+  font-size:0.75rem;
+  cursor:pointer;
+  font-family: var(--font);
+  display:flex; align-items:center; gap:4px;
+  transition: background 0.2s, color 0.2s;
+}
+.mail-toolbar-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.mail-toolbar-sep { width:1px; height:20px; background: var(--border); margin: 0 4px; }
+
+/* Compose area */
+.mail-compose-area {
+  flex:1; padding: 0; overflow:auto;
+  display:flex; flex-direction:column;
+}
+.mail-compose-fields {
+  padding: 0 16px;
+  display:flex; flex-direction:column;
+}
+.mail-field-row {
+  display:flex; align-items:center;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+.mail-field-label {
+  font-size:0.78rem; color: var(--text-muted);
+  min-width: 50px; font-weight:500;
+}
+.mail-field-input {
+  flex:1;
+  background: transparent; border:none; outline:none;
+  color: var(--text);
+  font-family: var(--font); font-size:0.85rem;
+  padding: 4px 8px;
+}
+.mail-field-input::placeholder { color: rgba(255,255,255,0.2); }
+.mail-field-static {
+  flex:1;
+  font-size:0.82rem; color: var(--primary);
+  padding: 4px 8px;
+}
+.mail-body-area {
+  flex:1; padding: 16px;
+  display:flex; flex-direction:column;
+}
+.mail-body-textarea {
+  flex:1;
+  background: transparent; border:none; outline:none;
+  color: var(--text);
+  font-family: var(--font); font-size:0.85rem;
+  resize:none;
+  line-height: 1.7;
+  min-height: 150px;
+}
+.mail-body-textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+/* Status bar */
+.mail-statusbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 6px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.1);
+  font-size:0.7rem; color: var(--text-muted);
+}
+.mail-send-btn {
+  padding: 7px 22px;
+  background: #0078d4;
+  color: #fff;
+  border:none; border-radius: 4px;
+  font-weight:600; font-size:0.8rem;
+  cursor:pointer;
+  font-family: var(--font);
+  display:flex; align-items:center; gap:6px;
+  transition: background 0.2s, transform 0.15s;
+}
+.mail-send-btn:hover { background: #106ebe; transform: translateY(-1px); }
+.mail-send-btn:disabled {
+  background: #555; cursor:not-allowed; transform:none;
+}
+.mail-send-btn.sending {
+  background: var(--accent-green);
+}
+
+/* Sent confirmation overlay */
+.mail-sent-overlay {
+  position:absolute; inset:0;
+  background: rgba(10,14,39,0.92);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:1rem;
+  z-index:10;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.mail-sent-icon { font-size:3rem; }
+.mail-sent-title { font-size:1.1rem; font-weight:600; color: var(--accent-green); }
+.mail-sent-sub { font-size:0.8rem; color: var(--text-muted); }
+
+/* Contact links footer */
+.contact-links {
+  display:flex; gap:12px;
+  flex-wrap: wrap;
+}
+.contact-link {
+  display:flex; align-items:center; gap:8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size:0.8rem;
+  text-decoration:none;
+  cursor:pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.contact-link:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+.contact-link-icon { font-size:1.1rem; }
+
+/* ============================================
+   WINDOW: PROJETS (Tableau de bord)
+   ============================================ */
+.projets-container {
+  height:100%; display:flex; flex-direction:column;
+}
+.projets-tabs {
+  display:flex;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+  gap:0;
+}
+.projets-tab {
+  padding: 10px 20px;
+  font-size:0.8rem;
+  color: var(--text-muted);
+  cursor:pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  display:flex; align-items:center; gap:6px;
+  font-family: var(--font);
+  background:transparent;
+  border-top:none; border-left:none; border-right:none;
+}
+.projets-tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.projets-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: rgba(0,212,255,0.05);
+}
+.projets-tab-count {
+  font-size:0.65rem;
+  background: rgba(255,255,255,0.1);
+  padding: 1px 7px;
+  border-radius:10px;
+  color: var(--text-muted);
+}
+
+.projets-panel {
+  flex:1; overflow:auto;
+  display:none;
+  padding: 1.2rem;
+}
+.projets-panel.active { display:block; }
+
+.projets-category {
+  margin-bottom: 1.5rem;
+}
+.projets-category-header {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.projets-category-icon { font-size:1.1rem; }
+.projets-category-title {
+  font-size:0.82rem; font-weight:600;
+  color: var(--text-bright);
+}
+.projets-category-count {
+  font-size:0.68rem;
+  color: var(--text-muted);
+  margin-left:auto;
+}
+
+.projet-card {
+  display:flex; gap:14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 8px;
+  cursor:pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  position:relative;
+  overflow:hidden;
+}
+.projet-card:hover {
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+  transform: translateX(4px);
+}
+.projet-card-icon {
+  font-size:1.8rem;
+  min-width:40px;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding-top:2px;
+}
+.projet-card-body { flex:1; min-width:0; }
+.projet-card-title {
+  font-size:0.85rem; font-weight:600;
+  color: var(--text-bright);
+  margin-bottom:3px;
+  display:flex; align-items:center; gap:8px;
+}
+.projet-card-context {
+  font-size:0.68rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight:500;
+}
+.projet-card-context.ecole {
+  background: rgba(187,134,252,0.15);
+  color: var(--accent-purple);
+}
+.projet-card-context.entreprise {
+  background: rgba(0,212,255,0.15);
+  color: var(--primary);
+}
+.projet-card-context.perso {
+  background: rgba(0,230,118,0.15);
+  color: var(--accent-green);
+}
+.projet-card-desc {
+  font-size:0.75rem;
+  color: var(--text-muted);
+  line-height:1.5;
+  margin-bottom:6px;
+}
+.projet-card-footer {
+  display:flex; align-items:center; gap:6px;
+  flex-wrap:wrap;
+}
+.projet-card-tag {
+  font-size:0.65rem;
+  padding: 2px 8px;
+  border-radius:8px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.projet-card-date {
+  font-size:0.65rem;
+  color: var(--text-muted);
+  margin-left:auto;
+  opacity:0.7;
+}
+
+.projet-card-status {
+  position:absolute;
+  top:0; right:0;
+  width:8px; height:8px;
+  border-radius:50%;
+  margin:12px;
+}
+.projet-card-status.done { background: var(--accent-green); }
+.projet-card-status.progress { background: var(--accent-yellow); }
+.projet-card-status.planned { background: var(--text-muted); }
+
+.projets-legend {
+  display:flex; gap:16px;
+  padding: 8px 14px;
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+  font-size:0.68rem;
+  color: var(--text-muted);
+}
+.projets-legend-item {
+  display:flex; align-items:center; gap:5px;
+}
+.projets-legend-dot {
+  width:6px; height:6px;
+  border-radius:50%;
+}
+
+/* ============================================
+   TERMINAL WINDOW
+   ============================================ */
+.terminal-container {
+  height:100%;
+  background: #0c0c0c;
+  padding:0;
+  display:flex; flex-direction:column;
+}
+.terminal-header-bar {
+  display:flex; align-items:center; gap:8px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+}
+.terminal-tab-item {
+  font-size:0.72rem;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor:pointer;
+}
+.terminal-tab-item.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.terminal-output {
+  flex:1;
+  overflow:auto;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--accent-green);
+}
+.terminal-output .t-prompt { color: var(--primary); }
+.terminal-output .t-cmd { color: var(--text-bright); }
+.terminal-output .t-result { color: var(--text); }
+.terminal-output .t-error { color: var(--accent-red); }
+.terminal-output .t-warn { color: var(--accent-yellow); }
+.terminal-output .t-info { color: var(--primary); }
+
+.terminal-input-line {
+  display:flex; align-items:center;
+  padding: 6px 12px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+  gap:8px;
+}
+.terminal-prompt-text {
+  font-family: var(--font-mono);
+  font-size:0.82rem;
+  color: var(--primary);
+  white-space:nowrap;
+}
+.terminal-input {
+  flex:1;
+  background:transparent;
+  border:none; outline:none;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size:0.82rem;
+}
+
+/* ============================================
+   GLITCH / AUTODESTRUCTION
+   ============================================ */
+.glitch-overlay {
+  position:fixed; inset:0;
+  z-index: var(--z-glitch);
+  pointer-events:none;
+  opacity:0;
+  transition: opacity 0.3s;
+}
+.glitch-overlay.active {
+  opacity:1;
+  animation: glitchFlicker 0.15s infinite;
+}
+@keyframes glitchFlicker {
+  0% { background: transparent; }
+  20% { background: rgba(255,0,0,0.08); }
+  40% { background: rgba(0,255,0,0.05); }
+  60% { background: rgba(0,0,255,0.08); }
+  80% { background: rgba(255,0,0,0.05); }
+  100% { background: transparent; }
+}
+
+.glitch-text {
+  position:fixed;
+  top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  z-index: var(--z-glitch-text);
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight:700;
+  color: var(--accent-red);
+  text-shadow:
+    2px 0 var(--primary),
+    -2px 0 var(--accent-green);
+  display:none;
+  text-align:center;
+  line-height:1.4;
+  animation: glitchText 0.3s infinite;
+}
+.glitch-text.active { display:block; }
+@keyframes glitchText {
+  0% { transform: translate(-50%,-50%) skew(0); }
+  20% { transform: translate(-52%,-48%) skew(2deg); }
+  40% { transform: translate(-48%,-52%) skew(-1deg); }
+  60% { transform: translate(-51%,-49%) skew(1deg); }
+  80% { transform: translate(-49%,-51%) skew(-2deg); }
+  100% { transform: translate(-50%,-50%) skew(0); }
+}
+
+.fire-particles {
+  position:fixed; inset:0;
+  z-index: var(--z-fire);
+  pointer-events:none;
+  overflow:hidden;
+}
+.fire-particle {
+  position:absolute;
+  width:6px; height:6px;
+  border-radius:50%;
+  animation: fireRise 1.5s ease-out forwards;
+}
+@keyframes fireRise {
+  0% { opacity:1; transform: translateY(0) scale(1); }
+  100% { opacity:0; transform: translateY(-200px) scale(0); }
+}
+
+/* ============================================
+   NOTIFICATIONS
+   ============================================ */
+.notification {
+  position:fixed;
+  bottom: calc(var(--taskbar-h) + 16px);
+  right: 16px;
+  background: var(--bg-taskbar);
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px 10px;
+  z-index: var(--z-notification);
+  box-shadow: var(--shadow);
+  display:flex; flex-direction: column; gap:8px;
+  transform: translateX(120%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 350px;
+  overflow:hidden;
+  cursor:pointer;
+}
+.notification.show { transform: translateX(0); }
+.notification-content {
+  display:flex; align-items:center; gap:12px;
+}
+.notification-icon { font-size:1.3rem; }
+.notification-body { display:flex; flex-direction:column; gap:2px; }
+.notification-title { font-size:0.8rem; font-weight:600; color: var(--text-bright); }
+.notification-text { font-size:0.72rem; color: var(--text-muted); }
+.notification-progress {
+  width:100%; height:2px;
+  background: rgba(255,255,255,0.08);
+  border-radius:1px;
+  margin-top:2px;
+}
+.notification-progress-fill {
+  height:100%;
+  background: var(--primary);
+  border-radius:1px;
+  width:100%;
+  transition: width linear;
+}
+
+/* ============================================
+   WINDOW: CV VIEWER
+   ============================================ */
+.cv-viewer { height:100%; display:flex; flex-direction:column; overflow:hidden; }
+.cv-toolbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 8px 14px;
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid var(--border);
+  flex-shrink:0;
+}
+.cv-toolbar-title { font-size:0.78rem; color: var(--text-muted); }
+.cv-download-btn {
+  padding: 6px 16px;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  color: var(--bg-dark);
+  border:none; border-radius: 20px;
+  font-weight:600; font-size:0.78rem;
+  cursor:pointer;
+  font-family: var(--font);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cv-download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+}
+.cv-content {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding: 1.5rem;
+  display:flex; justify-content:center; align-items:flex-start;
+  background: rgba(0,0,0,0.1);
+  min-height:0;
+}
+.cv-page {
+  background: #1a1a2e;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 600px;
+  width:100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  flex-shrink:0;
+}
+.cv-header-section {
+  display:flex; align-items:center; gap:1.2rem;
+  margin-bottom:1.5rem;
+  padding-bottom:1.2rem;
+  border-bottom: 2px solid var(--primary);
+}
+.cv-avatar-big {
+  width:64px; height:64px; border-radius:50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; font-weight:700; color: var(--bg-dark);
+  flex-shrink:0;
+}
+.cv-header-info { flex:1; }
+.cv-name { font-size:1.4rem; font-weight:700; color: var(--text-bright); margin-bottom:2px; }
+.cv-subtitle { font-size:0.85rem; color: var(--primary); font-weight:500; margin-bottom:6px; }
+.cv-contact-row { display:flex; flex-wrap:wrap; gap:12px; font-size:0.72rem; color: var(--text-muted); }
+.cv-section { margin-bottom:1.2rem; }
+.cv-section-title {
+  font-size:0.85rem; font-weight:700; color: var(--primary);
+  margin-bottom:0.6rem; padding-bottom:4px;
+  border-bottom: 1px solid rgba(0,212,255,0.15);
+}
+.cv-entry { margin-bottom:0.8rem; }
+.cv-entry-header { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:4px; }
+.cv-entry-header strong { font-size:0.82rem; color: var(--text-bright); }
+.cv-entry-date { font-size:0.7rem; color: var(--text-muted); }
+.cv-entry-sub { font-size:0.75rem; color: var(--text-muted); margin-top:2px; }
+.cv-entry-list {
+  margin: 6px 0 0 1.2rem;
+  font-size:0.75rem; color: var(--text);
+  line-height:1.7;
+}
+.cv-entry-list li::marker { color: var(--primary); }
+.cv-skills-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.cv-skill-cat { padding:8px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+.cv-skill-cat-title { font-size:0.72rem; font-weight:600; color: var(--text-bright); margin-bottom:6px; }
+.cv-skill-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.cv-skill-tags span {
+  padding: 2px 8px; border-radius:10px;
+  background: rgba(0,212,255,0.1); color: var(--primary);
+  font-size:0.62rem; font-weight:500;
+}
+.cv-objective {
+  font-size:0.78rem; color: var(--text); line-height:1.6;
+  font-style:italic;
+}
+
+/* ============================================
+   CONTEXT MENU
+   ============================================ */
+.context-menu {
+  position:fixed;
+  background: var(--bg-taskbar);
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 0;
+  z-index: var(--z-context);
+  min-width: 200px;
+  box-shadow: var(--shadow);
+  display:none;
+}
+.context-menu.visible { display:block; }
+.context-menu-item {
+  padding: 7px 16px;
+  font-size:0.78rem;
+  color: var(--text);
+  cursor:pointer;
+  display:flex; align-items:center; gap:10px;
+  transition: background 0.15s;
+}
+.context-menu-item:hover { background: rgba(0,212,255,0.1); }
+.context-menu-separator {
+  height:1px;
+  background: var(--border);
+  margin: 4px 8px;
+}
+
+/* ============================================
+   RESPONSIVE / MOBILE
+   ============================================ */
+#mobileMessage { display:none !important; }
+
+/* Use dynamic viewport height for mobile browsers */
+@supports (height: 100dvh) {
+  html, body { height: 100dvh; }
+  #lockScreen, #desktop { height: 100dvh; }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --taskbar-h: 48px;
+  }
+
+  /* ── Lock Screen mobile ── */
+  .lock-avatar { width:80px; height:80px; font-size:2rem; }
+  .lock-input { width:160px; font-size:0.85rem; padding:0.6rem 1rem; }
+  .lock-btn { padding:0.6rem 1.2rem; font-size:0.8rem; }
+  .lock-input-wrapper { flex-wrap:nowrap; }
+
+  /* ── Desktop icons ── */
+  .desktop-icons {
+    top:12px; left:8px; right:8px;
+    flex-direction:row; flex-wrap:wrap;
+    gap:4px;
+  }
+  .desktop-icon {
+    width:72px;
+    padding:8px 4px;
+  }
+  .desktop-icon-img { width:40px; height:40px; font-size:1.6rem; }
+  .desktop-icon-label { font-size:0.65rem; }
+
+  /* ── Taskbar mobile ── */
+  #taskbar { padding:0 6px; }
+  .taskbar-center {
+    position:relative; left:auto; transform:none;
+    flex:1;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    gap:0;
+    justify-content:center;
+  }
+  .taskbar-center::-webkit-scrollbar { display:none; }
+  .taskbar-btn { min-width:38px; height:36px; padding:0 6px; font-size:1rem; }
+  .taskbar-tray { display:none; }
+  .taskbar-clock { padding:2px 4px; }
+  .taskbar-time { font-size:0.72rem; }
+  .taskbar-date-small { font-size:0.6rem; }
+
+  /* ── Start menu mobile ── */
+  #startMenu {
+    width: calc(100vw - 16px);
+    max-height: 70vh;
+    overflow-y:auto;
+    padding:1rem;
+    bottom: calc(var(--taskbar-h) + 8px);
+  }
+  .start-apps {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap:4px;
+  }
+  .start-app { padding:10px 4px; }
+  .start-app-icon { font-size:1.4rem; }
+  .start-app-label { font-size:0.65rem; }
+
+  /* ── Windows: always maximized on mobile ── */
+  .os-window {
+    position:fixed !important;
+    top:0 !important; left:0 !important;
+    width:100vw !important;
+    height: calc(100vh - var(--taskbar-h)) !important;
+    height: calc(100dvh - var(--taskbar-h)) !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    border-radius:0 !important;
+    border:none !important;
+  }
+  .resize-handle { display:none !important; }
+  .window-ctrl-btn.maximize-btn { display:none; }
+
+  /* ── Window title bar compact ── */
+  .window-titlebar { height:34px; min-height:34px; padding:0 8px; gap:6px; }
+  .window-titlebar-text { font-size:0.72rem; }
+  .window-ctrl-btn { width:32px; height:28px; }
+
+  /* ── Accueil content mobile ── */
+  .accueil-content { padding:1.2rem 1rem; }
+  .accueil-greeting { font-size:0.75rem; letter-spacing:1px; }
+  .terminal-text { font-size:0.72rem; padding:0.8rem 1rem; min-height:60px; }
+  .accueil-tags { gap:6px; }
+  .accueil-tag { padding:4px 10px; font-size:0.68rem; }
+
+  /* ── À propos editor mobile ── */
+  .editor-sidebar { width:36px; padding-top:6px; gap:10px; }
+  .editor-sidebar-icon { width:24px; height:24px; font-size:0.75rem; }
+  .editor-tabs { overflow-x:auto; scrollbar-width:none; flex-wrap:nowrap; }
+  .editor-tabs::-webkit-scrollbar { display:none; }
+  .editor-tab { padding:6px 10px; font-size:0.68rem; white-space:nowrap; }
+  .editor-code { font-size:0.7rem; padding:0.6rem; line-height:1.6; }
+  .code-line { gap:0.5rem; }
+  .code-line::before { min-width:2em; font-size:0.65rem; }
+
+  /* ── Réalisations explorer mobile ── */
+  .explorer-content { flex-direction:column; }
+  .explorer-files {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap:6px;
+    padding:0.6rem;
+  }
+  .file-item { padding:10px 6px; }
+  .file-icon { font-size:1.8rem; }
+  .file-name { font-size:0.65rem; }
+  .explorer-detail.open {
+    width:100% !important;
+    border-left:none;
+    border-top:1px solid var(--border);
+    padding:1rem;
+    max-height:45%;
+  }
+
+  /* ── Contact mail mobile ── */
+  .mail-container { flex-direction:column; }
+  .mail-sidebar-left {
+    width:100%; flex-direction:row; flex-wrap:wrap;
+    padding:0; gap:0;
+    border-right:none; border-bottom:1px solid var(--border);
+  }
+  .mail-sidebar-header { display:none; }
+  .mail-sidebar-footer { display:none; }
+  .mail-folders {
+    flex-direction:row; flex-wrap:wrap;
+    padding:6px 8px; gap:2px;
+  }
+  .mail-compose-btn { margin:6px 8px; padding:6px 12px; font-size:0.75rem; }
+  .mail-folder { padding:4px 8px; font-size:0.7rem; }
+  .mail-folder-badge { display:none; }
+  .mail-toolbar { flex-wrap:wrap; padding:6px 10px; gap:4px; }
+  .mail-toolbar-btn { font-size:0.7rem; padding:4px 8px; }
+  .mail-field-label { font-size:0.7rem; min-width:40px; }
+  .mail-field-input { font-size:0.8rem; }
+  .mail-body-textarea { font-size:0.8rem; min-height:100px; }
+  .mail-statusbar { padding:6px 10px; }
+  .mail-send-btn { padding:6px 16px; font-size:0.75rem; }
+  .contact-links { gap:4px; }
+  .contact-link { padding:5px 8px; font-size:0.68rem; }
+
+  /* ── Projets mobile ── */
+  .projets-tabs { overflow-x:auto; scrollbar-width:none; flex-wrap:nowrap; }
+  .projets-tabs::-webkit-scrollbar { display:none; }
+  .projets-tab { padding:8px 12px; font-size:0.72rem; white-space:nowrap; }
+  .projet-card { flex-direction:column; gap:8px; padding:10px; }
+  .projet-card-icon { min-width:auto; font-size:1.5rem; }
+  .projet-card-title { font-size:0.78rem; flex-wrap:wrap; }
+  .projet-card-desc { font-size:0.7rem; }
+  .projet-card-footer { gap:4px; }
+  .projet-card-tag { font-size:0.6rem; padding:2px 6px; }
+  .projets-legend { font-size:0.62rem; gap:10px; padding:6px 10px; }
+
+  /* ── Terminal mobile ── */
+  .terminal-output { font-size:0.72rem; padding:8px; line-height:1.5; }
+  .terminal-input-line { padding:4px 8px; gap:4px; }
+  .terminal-prompt-text { font-size:0.72rem; }
+  .terminal-input { font-size:0.72rem; }
+
+  /* ── Notifications mobile ── */
+  .notification { max-width:calc(100vw - 24px); right:12px; left:12px; }
+
+  /* ── Context menu mobile ── */
+  .context-menu { min-width:160px; }
+
+  /* ── Browser toolbar mobile ── */
+  .browser-toolbar { padding:4px 6px; gap:4px; }
+  .browser-nav-btn { width:24px; height:24px; font-size:0.7rem; }
+  .browser-url { font-size:0.68rem; padding:4px 8px; }
+
+  /* ── CV viewer mobile ── */
+  .cv-content { padding:0.8rem; }
+  .cv-page { padding:1.2rem; }
+  .cv-header-section { flex-direction:column; text-align:center; gap:0.8rem; }
+  .cv-contact-row { justify-content:center; }
+  .cv-name { font-size:1.1rem; }
+  .cv-skills-grid { grid-template-columns:1fr; }
+  .cv-toolbar { flex-direction:column; gap:6px; padding:6px 10px; }
+  .cv-download-btn { width:100%; text-align:center; }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .desktop-icons { gap:2px; }
+  .desktop-icon { width:60px; padding:6px 2px; }
+  .desktop-icon-img { font-size:1.3rem; }
+  .desktop-icon-label { font-size:0.6rem; }
+  .lock-time { font-size:3.5rem; }
+  .lock-avatar { width:64px; height:64px; font-size:1.5rem; }
+  .lock-username { font-size:1rem; }
+  .lock-input { width:130px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== NOSCRIPT ========== -->
+<noscript>
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0e27;color:#e0e0e0;font-family:sans-serif;text-align:center;padding:2rem;">
+    <p>⚠️ Ce portfolio interactif nécessite JavaScript pour fonctionner.<br>Veuillez activer JavaScript dans votre navigateur.</p>
+  </div>
+</noscript>
+
+<!-- ========== BOOT SCREEN ========== -->
+<div id="bootScreen">
+  <div class="boot-logo">🖥️</div>
+  <div class="boot-text">AymenOS v2.0 — Initialisation...</div>
+  <div class="boot-progress"><div class="boot-progress-fill"></div></div>
+</div>
+
+<!-- Mobile message hidden, site is now responsive -->
+
+<!-- ========== LOCK SCREEN ========== -->
+<div id="lockScreen" role="dialog" aria-label="Écran de verrouillage">
+  <div class="lock-time" id="lockTime">00:00</div>
+  <div class="lock-date" id="lockDate">Chargement...</div>
+  <div class="lock-profile">
+    <div class="lock-avatar">A</div>
+    <div class="lock-username">Aymen Louraghi</div>
+  </div>
+  <div class="lock-action">
+    <div class="lock-input-wrapper">
+      <input type="password" class="lock-input" id="lockInput" placeholder="Mot de passe" autocomplete="off" aria-label="Mot de passe">
+      <button class="lock-btn" id="unlockBtn">Déverrouiller →</button>
+    </div>
+    <div class="lock-hint">Indice : 1234</div>
+  </div>
+</div>
+
+<!-- ========== DESKTOP ========== -->
+<div id="desktop">
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Desktop Icons -->
+  <div class="desktop-icons">
+    <div class="desktop-icon" data-window="accueil" ondblclick="openWindow('accueil')">
+      <div class="desktop-icon-img">🌐</div>
+      <div class="desktop-icon-label">Accueil.html</div>
+    </div>
+    <div class="desktop-icon" data-window="apropos" ondblclick="openWindow('apropos')">
+      <div class="desktop-icon-img">📝</div>
+      <div class="desktop-icon-label">À_Propos.txt</div>
+    </div>
+    <div class="desktop-icon" data-window="realisations" ondblclick="openWindow('realisations')">
+      <div class="desktop-icon-img">📁</div>
+      <div class="desktop-icon-label">Réalisations</div>
+    </div>
+    <div class="desktop-icon" data-window="projets" ondblclick="openWindow('projets')">
+      <div class="desktop-icon-img">📂</div>
+      <div class="desktop-icon-label">Projets</div>
+    </div>
+    <div class="desktop-icon" data-window="contact" ondblclick="openWindow('contact')">
+      <div class="desktop-icon-img">📨</div>
+      <div class="desktop-icon-label">Contact</div>
+    </div>
+    <div class="desktop-icon" data-window="terminal" ondblclick="openWindow('terminal')">
+      <div class="desktop-icon-img">⬛</div>
+      <div class="desktop-icon-label">Terminal</div>
+    </div>
+    <div class="desktop-icon" data-window="cv" ondblclick="openWindow('cv')">
+      <div class="desktop-icon-img">📄</div>
+      <div class="desktop-icon-label">CV.pdf</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TASKBAR ========== -->
+<div id="taskbar">
+  <div class="taskbar-left">
+    <button class="taskbar-btn start-btn" id="startBtn" onclick="toggleStartMenu()" title="Démarrer">⊞</button>
+  </div>
+  <div class="taskbar-center" id="taskbarApps">
+    <button class="taskbar-btn" onclick="openWindow('accueil')" title="Accueil">🌐</button>
+    <button class="taskbar-btn" onclick="openWindow('apropos')" title="À Propos">📝</button>
+    <button class="taskbar-btn" onclick="openWindow('realisations')" title="Réalisations">📁</button>
+    <button class="taskbar-btn" onclick="openWindow('projets')" title="Projets">📂</button>
+    <button class="taskbar-btn" onclick="openWindow('contact')" title="Contact">📨</button>
+    <button class="taskbar-btn" onclick="openWindow('terminal')" title="Terminal">⬛</button>
+    <button class="taskbar-btn" onclick="openWindow('cv')" title="CV">📄</button>
+    <button class="taskbar-btn" onclick="triggerSelfDestruct()" title="Autodestruction" style="color:var(--accent-red);">☢️</button>
+  </div>
+  <div class="taskbar-right">
+    <div class="taskbar-tray">
+      <span>📶</span>
+      <span>🔊</span>
+    </div>
+    <div class="taskbar-clock" id="taskbarClock">
+      <span class="taskbar-time" id="taskbarTime">00:00</span>
+      <span class="taskbar-date-small" id="taskbarDate">01/01</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== START MENU ========== -->
+<div id="startMenu">
+  <input type="text" class="start-search" placeholder="🔍 Rechercher dans le portfolio..." id="startSearch" autocomplete="off">
+  <div class="start-section-title">APPLICATIONS</div>
+  <div class="start-apps" id="startApps">
+    <div class="start-app" onclick="openWindow('accueil'); toggleStartMenu();">
+      <div class="start-app-icon">🌐</div>
+      <div class="start-app-label">Accueil</div>
+    </div>
+    <div class="start-app" onclick="openWindow('apropos'); toggleStartMenu();">
+      <div class="start-app-icon">📝</div>
+      <div class="start-app-label">À Propos</div>
+    </div>
+    <div class="start-app" onclick="openWindow('realisations'); toggleStartMenu();">
+      <div class="start-app-icon">📁</div>
+      <div class="start-app-label">Réalisations</div>
+    </div>
+    <div class="start-app" onclick="openWindow('projets'); toggleStartMenu();">
+      <div class="start-app-icon">📂</div>
+      <div class="start-app-label">Projets</div>
+    </div>
+    <div class="start-app" onclick="openWindow('contact'); toggleStartMenu();">
+      <div class="start-app-icon">📨</div>
+      <div class="start-app-label">Contact</div>
+    </div>
+    <div class="start-app" onclick="openWindow('terminal'); toggleStartMenu();">
+      <div class="start-app-icon">⬛</div>
+      <div class="start-app-label">Terminal</div>
+    </div>
+    <div class="start-app" onclick="openWindow('cv'); toggleStartMenu();">
+      <div class="start-app-icon">📄</div>
+      <div class="start-app-label">CV</div>
+    </div>
+    <div class="start-app" onclick="triggerSelfDestruct(); toggleStartMenu();">
+      <div class="start-app-icon">☢️</div>
+      <div class="start-app-label">Autodestruction</div>
+    </div>
+  </div>
+  <div class="start-user">
+    <div class="start-user-avatar">A</div>
+    <div class="start-user-name">Aymen Louraghi</div>
+  </div>
+</div>
+
+<!-- ========== CONTEXT MENU ========== -->
+<div class="context-menu" id="contextMenu" role="menu">
+  <div class="context-menu-item" role="menuitem" onclick="openWindow('accueil')">🌐  Ouvrir Accueil</div>
+  <div class="context-menu-item" role="menuitem" onclick="openWindow('apropos')">📝  Ouvrir À Propos</div>
+  <div class="context-menu-item" role="menuitem" onclick="openWindow('realisations')">📁  Ouvrir Réalisations</div>
+  <div class="context-menu-item" role="menuitem" onclick="openWindow('projets')">📂  Ouvrir Projets</div>
+  <div class="context-menu-separator" role="separator"></div>
+  <div class="context-menu-item" role="menuitem" onclick="openWindow('terminal')">⬛  Ouvrir Terminal</div>
+  <div class="context-menu-item" role="menuitem" onclick="location.reload()">🔄  Actualiser</div>
+</div>
+
+<!-- ========== GLITCH OVERLAY ========== -->
+<div class="glitch-overlay" id="glitchOverlay"></div>
+<div class="glitch-text" id="glitchText">⚠ SYSTEM FAILURE ⚠<br>AUTODESTRUCTION...</div>
+<div class="fire-particles" id="fireParticles"></div>
+
+<!-- ========== NOTIFICATION ========== -->
+<div class="notification" id="notification" role="alert" onclick="this.classList.remove('show')">
+  <div class="notification-content">
+    <div class="notification-icon">🔔</div>
+    <div class="notification-body">
+      <div class="notification-title" id="notifTitle">Bienvenue</div>
+      <div class="notification-text" id="notifText">Portfolio chargé avec succès.</div>
+    </div>
+  </div>
+  <div class="notification-progress"><div class="notification-progress-fill" id="notifProgress"></div></div>
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================
+// STATE
+// ============================
+const state = {
+  windows: {},
+  windowOrder: [],
+  zCounter: 100,
+  startMenuOpen: false,
+  selfDestructActive: false,
+  terminalHistory: [],
+  terminalHistoryIndex: -1,
+  notifTimer: null,
+};
+
+// ============================
+// BOOT SEQUENCE
+// ============================
+(function bootSequence() {
+  const boot = document.getElementById('bootScreen');
+  if (!boot) return;
+  setTimeout(() => {
+    boot.classList.add('hidden');
+    setTimeout(() => boot.remove(), 600);
+  }, 2200);
+})();
+
+// ============================
+// CLOCK
+// ============================
+function updateClocks() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const timeStr = `${h}:${m}`;
+  const options = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  const dateStr = now.toLocaleDateString('fr-FR', options);
+  const shortDate = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  const lockTime = document.getElementById('lockTime');
+  const lockDate = document.getElementById('lockDate');
+  const taskbarTime = document.getElementById('taskbarTime');
+  const taskbarDate = document.getElementById('taskbarDate');
+
+  if (lockTime) lockTime.textContent = timeStr;
+  if (lockDate) lockDate.textContent = dateStr;
+  if (taskbarTime) taskbarTime.textContent = timeStr;
+  if (taskbarDate) taskbarDate.textContent = shortDate;
+}
+updateClocks();
+setInterval(updateClocks, 1000);
+
+// ============================
+// LOCK SCREEN
+// ============================
+function tryUnlock() {
+  const input = document.getElementById('lockInput');
+  const pwd = input.value;
+  if (pwd === '1234') {
+    input.style.border = '';
+    document.getElementById('lockScreen').classList.add('unlocked');
+    setTimeout(() => {
+      showNotification('👋 Bienvenue, Aymen !', 'Double-cliquez sur les icônes ou utilisez la barre des tâches.');
+    }, 1000);
+    setTimeout(() => {
+      openWindow('accueil');
+    }, 1400);
+  } else {
+    input.value = '';
+    input.style.border = '1px solid var(--accent-red)';
+    input.placeholder = 'Mot de passe incorrect';
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 500);
+  }
+}
+
+document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('lockInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryUnlock();
+});
+
+// ============================
+// PARTICLES
+// ============================
+function createParticles() {
+  const container = document.getElementById('particles');
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 15) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 3) + 'px';
+    if (Math.random() > 0.5) p.style.background = 'var(--accent-purple)';
+    fragment.appendChild(p);
+  }
+  container.appendChild(fragment);
+}
+createParticles();
+
+// ============================
+// CONTEXT MENU
+// ============================
+document.getElementById('desktop').addEventListener('contextmenu', e => {
+  e.preventDefault();
+  // Ignore right-click inside a window
+  if (e.target.closest('.os-window')) return;
+  const cm = document.getElementById('contextMenu');
+  // Clamp to viewport
+  const x = Math.min(e.clientX, window.innerWidth - 220);
+  const y = Math.min(e.clientY, window.innerHeight - 200);
+  cm.style.left = x + 'px';
+  cm.style.top = y + 'px';
+  cm.classList.add('visible');
+});
+document.addEventListener('click', () => {
+  document.getElementById('contextMenu').classList.remove('visible');
+});
+
+// ============================
+// START MENU
+// ============================
+function toggleStartMenu() {
+  state.startMenuOpen = !state.startMenuOpen;
+  document.getElementById('startMenu').classList.toggle('open', state.startMenuOpen);
+  if (state.startMenuOpen) {
+    document.getElementById('startSearch').value = '';
+    document.querySelectorAll('#startApps .start-app').forEach(a => a.style.display = '');
+  }
+}
+document.addEventListener('click', e => {
+  if (state.startMenuOpen &&
+      !document.getElementById('startMenu').contains(e.target) &&
+      !document.getElementById('startBtn').contains(e.target)) {
+    state.startMenuOpen = false;
+    document.getElementById('startMenu').classList.remove('open');
+  }
+});
+
+// Start menu search
+document.getElementById('startSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#startApps .start-app').forEach(app => {
+    const label = app.querySelector('.start-app-label').textContent.toLowerCase();
+    app.style.display = label.includes(q) ? '' : 'none';
+  });
+});
+
+// ============================
+// NOTIFICATION
+// ============================
+function showNotification(title, text, duration = 4000) {
+  const n = document.getElementById('notification');
+  const bar = document.getElementById('notifProgress');
+  document.getElementById('notifTitle').textContent = title;
+  document.getElementById('notifText').textContent = text;
+  // Reset progress
+  if (state.notifTimer) clearTimeout(state.notifTimer);
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  // Force reflow then animate
+  bar.offsetWidth;
+  bar.style.transition = `width ${duration}ms linear`;
+  bar.style.width = '0%';
+  n.classList.add('show');
+  state.notifTimer = setTimeout(() => n.classList.remove('show'), duration);
+}
+
+// ============================
+// WINDOW TEMPLATES
+// ============================
+function getWindowContent(id) {
+  const templates = {
+    accueil: {
+      title: 'Accueil.html — Navigateur',
+      icon: '🌐',
+      width: 750, height: 520,
+      content: `
+        <div class="browser-toolbar">
+          <button class="browser-nav-btn">◀</button>
+          <button class="browser-nav-btn">▶</button>
+          <button class="browser-nav-btn">⟳</button>
+          <input class="browser-url" value="https://aymen-louraghi.dev/accueil" readonly>
+        </div>
+        <div class="accueil-content">
+          <div class="accueil-greeting">// BIENVENUE SUR MON PORTFOLIO</div>
+          <h1 class="accueil-title">
+            Passionné par les <span class="highlight">Réseaux</span><br>
+            &amp; la <span class="highlight">Cybersécurité</span>
+          </h1>
+          <div class="terminal-text" id="typingTerminal">
+            <span class="prompt">aymen@portfolio:~$</span> <span id="typedText"></span><span class="cursor"></span>
+          </div>
+          <div class="accueil-tags">
+            <span class="accueil-tag">🎓 BTS SIO SISR</span>
+            <span class="accueil-tag">🏢 Alternance Konvergence</span>
+            <span class="accueil-tag">🔒 Cybersécurité</span>
+            <span class="accueil-tag">🌐 Réseaux</span>
+            <span class="accueil-tag">🐧 Linux</span>
+          </div>
+        </div>
+      `
+    },
+    apropos: {
+      title: 'À_Propos.txt — Code Editor',
+      icon: '📝',
+      width: 780, height: 550,
+      content: `
+        <div class="editor-container">
+          <div class="editor-sidebar">
+            <div class="editor-sidebar-icon active">📄</div>
+            <div class="editor-sidebar-icon">🔍</div>
+            <div class="editor-sidebar-icon">🔀</div>
+            <div class="editor-sidebar-icon">🧩</div>
+          </div>
+          <div class="editor-main">
+            <div class="editor-tabs">
+              <div class="editor-tab active">📄 à_propos.json</div>
+              <div class="editor-tab">📄 skills.js</div>
+            </div>
+            <div class="editor-code">
+              <div class="code-line"><span class="cm">// ═══════════════════════════════════</span></div>
+              <div class="code-line"><span class="cm">//  À PROPOS — Aymen Louraghi</span></div>
+              <div class="code-line"><span class="cm">// ═══════════════════════════════════</span></div>
+              <div class="code-line">&nbsp;</div>
+              <div class="code-line"><span class="kw">const</span> <span class="prop">profil</span> = {</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">nom</span>: <span class="str">"Aymen Louraghi"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">âge</span>: <span class="num">19</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">formation</span>: <span class="str">"BTS SIO option SISR"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">école</span>: <span class="str">"CFP Les Charmilles"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">alternance</span>: <span class="str">"Konvergence"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">localisation</span>: <span class="str">"235 rue de Corporat Moirans"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">passions</span>: [</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Réseaux & Infrastructures"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Cybersécurité"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Administration Systèmes"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Automatisation de procédés"</span></div>
+              <div class="code-line">&nbsp;&nbsp;],</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="prop">objectif</span>: <span class="str">"Devenir Technicien de maintenance informatique"</span></div>
+              <div class="code-line">};</div>
+              <div class="code-line">&nbsp;</div>
+              <div class="code-line"><span class="cm">// Actuellement en alternance, je conçois</span></div>
+              <div class="code-line"><span class="cm">// et déploie des infrastructures réseau</span></div>
+              <div class="code-line"><span class="cm">// tout en renforçant leur sécurité.</span></div>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    realisations: {
+      title: 'Réalisations — Explorateur',
+      icon: '📁',
+      width: 850, height: 580,
+      content: `
+        <div class="explorer-toolbar">
+          <div class="explorer-breadcrumb">
+            <span>💻 Ce PC</span> › <span>📁 Compétences</span> › <span>Réalisations</span>
+          </div>
+        </div>
+        <div class="explorer-content">
+          <div class="explorer-files" id="explorerFiles">
+            <div style="grid-column:1/-1;font-size:0.7rem;color:var(--text-muted);font-weight:600;letter-spacing:0.5px;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">🧠 COMPÉTENCES</div>
+            <div class="file-item" onclick="selectProject(this, 0)">
+              <div class="file-icon">🌐</div>
+              <div class="file-name">Cisco / Réseau</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 1)">
+              <div class="file-icon">🐧</div>
+              <div class="file-name">Linux</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 2)">
+              <div class="file-icon">🪟</div>
+              <div class="file-name">Windows Server</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 3)">
+              <div class="file-icon">🛡️</div>
+              <div class="file-name">Cybersécurité</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 4)">
+              <div class="file-icon">📡</div>
+              <div class="file-name">Active Directory</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 5)">
+              <div class="file-icon">🐍</div>
+              <div class="file-name">Python</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 6)">
+              <div class="file-icon">🔧</div>
+              <div class="file-name">GLPI / ITSM</div>
+            </div>
+            <div class="file-item" onclick="selectProject(this, 7)">
+              <div class="file-icon">☁️</div>
+              <div class="file-name">Virtualisation</div>
+            </div>
+          </div>
+          <div class="explorer-detail" id="explorerDetail">
+            <div class="detail-header">
+              <div class="detail-icon" id="detailIcon">🧠</div>
+              <div class="detail-title" id="detailTitle">Sélectionnez une compétence</div>
+            </div>
+            <div class="detail-meta" id="detailMeta">
+              <span>Catégorie : —</span>
+              <span>Niveau : —</span>
+            </div>
+            <div class="detail-desc" id="detailDesc">Cliquez sur une compétence pour voir ses détails.</div>
+            <div class="detail-tags" id="detailTags"></div>
+          </div>
+        </div>
+      `
+    },
+    projets: {
+      title: 'Projets — Tableau de bord',
+      icon: '📂',
+      width: 880, height: 600,
+      content: `
+        <div class="projets-container">
+          <div class="projets-tabs">
+            <button class="projets-tab active" onclick="switchProjetTab(this, 'all')">📋 Tout <span class="projets-tab-count" id="countAll">0</span></button>
+            <button class="projets-tab" onclick="switchProjetTab(this, 'ecole')">🎓 École <span class="projets-tab-count" id="countEcole">0</span></button>
+            <button class="projets-tab" onclick="switchProjetTab(this, 'entreprise')">🏢 Entreprise <span class="projets-tab-count" id="countEntreprise">0</span></button>
+            <button class="projets-tab" onclick="switchProjetTab(this, 'perso')">🏠 Personnel <span class="projets-tab-count" id="countPerso">0</span></button>
+          </div>
+          <div class="projets-panel active" id="projetsContent"></div>
+          <div class="projets-legend">
+            <div class="projets-legend-item"><div class="projets-legend-dot" style="background:var(--accent-green)"></div> Terminé</div>
+            <div class="projets-legend-item"><div class="projets-legend-dot" style="background:var(--accent-yellow)"></div> En cours</div>
+            <div class="projets-legend-item"><div class="projets-legend-dot" style="background:var(--text-muted)"></div> Planifié</div>
+          </div>
+        </div>
+      `
+    },
+    contact: {
+      title: 'Contact — Outlook',
+      icon: '📨',
+      width: 780, height: 540,
+      content: `
+        <div class="mail-container" style="position:relative;">
+          <div class="mail-sidebar-left">
+            <div class="mail-sidebar-header">📧 Mail</div>
+            <button class="mail-compose-btn" onclick="resetContactForm()">✏️ Nouveau message</button>
+            <div class="mail-folders">
+              <div class="mail-folder active">📥 Boîte de réception <span class="mail-folder-badge">1</span></div>
+              <div class="mail-folder">📤 Éléments envoyés</div>
+              <div class="mail-folder">📝 Brouillons</div>
+              <div class="mail-folder">⭐ Favoris</div>
+              <div class="mail-folder">🗑️ Éléments supprimés</div>
+              <div class="mail-folder">📁 Archive</div>
+            </div>
+            <div class="mail-sidebar-footer">
+              <div class="mail-sidebar-avatar">V</div>
+              <span>Visiteur</span>
+            </div>
+          </div>
+          <div class="mail-main">
+            <div class="mail-toolbar">
+              <button class="mail-toolbar-btn" onclick="document.getElementById('contactForm').requestSubmit()">📤 Envoyer</button>
+              <div class="mail-toolbar-sep"></div>
+              <button class="mail-toolbar-btn">📎 Joindre</button>
+              <button class="mail-toolbar-btn" onclick="resetContactForm()">🗑️ Supprimer</button>
+              <div style="flex:1;"></div>
+              <div class="contact-links" style="margin:0;gap:6px;">
+                <a class="contact-link" href="mailto:aymen.louraghi38@gmail.com" style="padding:5px 10px;font-size:0.7rem;">
+                  <span class="contact-link-icon" style="font-size:0.85rem;">📧</span> Email
+                </a>
+                <a class="contact-link" href="https://fr.linkedin.com/in/aymen-louraghi-887ab9312" target="_blank" style="padding:5px 10px;font-size:0.7rem;">
+                  <span class="contact-link-icon" style="font-size:0.85rem;">💼</span> LinkedIn
+                </a>
+              </div>
+            </div>
+            <form class="mail-compose-area" id="contactForm" onsubmit="handleContactSubmit(event)">
+              <div class="mail-compose-fields">
+                <div class="mail-field-row">
+                  <span class="mail-field-label">De :</span>
+                  <input class="mail-field-input" id="contactFrom" type="email" name="from_email" placeholder="votre@email.com" required>
+                </div>
+                <div class="mail-field-row">
+                  <span class="mail-field-label">À :</span>
+                  <span class="mail-field-static">aymen.louraghi38@gmail.com</span>
+                </div>
+                <div class="mail-field-row">
+                  <span class="mail-field-label">Nom :</span>
+                  <input class="mail-field-input" id="contactName" type="text" name="from_name" placeholder="Votre nom" required>
+                </div>
+                <div class="mail-field-row">
+                  <span class="mail-field-label">Objet :</span>
+                  <input class="mail-field-input" id="contactSubject" type="text" name="subject" placeholder="Objet du message" required>
+                </div>
+              </div>
+              <div class="mail-body-area">
+                <textarea class="mail-body-textarea" id="contactMessage" name="message" placeholder="Rédigez votre message ici..." required></textarea>
+              </div>
+              <div class="mail-statusbar">
+                <span id="mailStatus">Prêt</span>
+                <button type="submit" class="mail-send-btn" id="mailSendBtn">📤 Envoyer</button>
+              </div>
+            </form>
+          </div>
+          <div id="mailSentOverlay" style="display:none;"></div>
+        </div>
+      `
+    },
+    terminal: {
+      title: 'Terminal — PowerShell',
+      icon: '⬛',
+      width: 680, height: 440,
+      content: `
+        <div class="terminal-container">
+          <div class="terminal-header-bar">
+            <div class="terminal-tab-item active">PowerShell</div>
+          </div>
+          <div class="terminal-output" id="terminalOutput">
+            <div><span class="t-info">Aymen OS Terminal v2.0</span></div>
+            <div><span class="t-result">Tapez <span class="t-cmd">"help"</span> pour voir les commandes disponibles.</span></div>
+            <div>&nbsp;</div>
+          </div>
+          <div class="terminal-input-line">
+            <span class="terminal-prompt-text">aymen@portfolio:~$</span>
+            <input class="terminal-input" id="terminalInput" type="text" autofocus spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+      `
+    },
+    cv: {
+      title: 'CV.pdf — Lecteur PDF',
+      icon: '📄',
+      width: 720, height: 600,
+      content: `
+        <div class="cv-viewer">
+          <div class="cv-toolbar">
+            <span class="cv-toolbar-title">📄 CV_2026-02-11_Aymen_LOURAGHI.pdf</span>
+            <div class="cv-toolbar-actions">
+              <button class="cv-download-btn" onclick="downloadCV()">⬇️ Télécharger le CV</button>
+            </div>
+          </div>
+          <div class="cv-content">
+            <div class="cv-page">
+              <div class="cv-header-section">
+                <div class="cv-avatar-big">A</div>
+                <div class="cv-header-info">
+                  <h1 class="cv-name">Aymen Louraghi</h1>
+                  <div class="cv-subtitle">BTS SIO option SISR</div>
+                  <div class="cv-contact-row">
+                    <span>📧 aymen.louraghi38@gmail.com</span>
+                    <span>📍 Grenoble</span>
+                    <span>📞 07 69 87 11 15</span>
+                    <span>🚗 Mobilité</span>
+                    <span><a href="https://fr.linkedin.com/in/aymen-louraghi-887ab9312" target="_blank" style="color:var(--text-muted);text-decoration:none;">💼 LinkedIn</a></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cv-section">
+                <div class="cv-section-title">🎓 Formation</div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>BTS SIO — Services Informatiques aux Organisations</strong>
+                    <span class="cv-entry-date">Depuis 2024</span>
+                  </div>
+                  <div class="cv-entry-sub">CFP Les Charmilles — Saint-Martin-d'Hères</div>
+                </div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>Baccalauréat STMG — Spécialité Gestion Finance</strong>
+                    <span class="cv-entry-date">Sept. 2020 — Juil. 2023</span>
+                  </div>
+                  <div class="cv-entry-sub">Lycée Emmanuel Mounier — Grenoble</div>
+                  <div class="cv-entry-sub" style="color:var(--text);margin-top:4px;">Management, Science de Gestion et du numérique, Droit et économie</div>
+                </div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>Diplôme National du Brevet des Collèges</strong>
+                    <span class="cv-entry-date">2020</span>
+                  </div>
+                  <div class="cv-entry-sub">Collège Champollion — Grenoble</div>
+                </div>
+              </div>
+
+              <div class="cv-section">
+                <div class="cv-section-title">🏢 Expériences Professionnelles</div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>Technicien de maintenance informatique — Stagiaire</strong>
+                    <span class="cv-entry-date">Février 2024</span>
+                  </div>
+                  <div class="cv-entry-sub">Préfecture de l'Isère — Grenoble</div>
+                  <ul class="cv-entry-list">
+                    <li>Création d'algorithme d'automatisation de tâches</li>
+                    <li>Configuration d'équipement informatique (imprimante)</li>
+                    <li>Configuration de carte d'accès à un bâtiment</li>
+                    <li>Configuration de PC (branchement, installation Windows...)</li>
+                    <li>Gestion de tickets (Service RH)</li>
+                  </ul>
+                </div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>Expert-comptable — Stagiaire</strong>
+                    <span class="cv-entry-date">Février 2023</span>
+                  </div>
+                  <div class="cv-entry-sub">CSIG Isère — Meylan</div>
+                  <ul class="cv-entry-list">
+                    <li>Enregistrement des opérations courantes (achats, ventes, banque...)</li>
+                    <li>Enregistrement des opérations diverses du salaire</li>
+                    <li>Lettrage des comptes clients et fournisseurs</li>
+                    <li>Rapprochement bancaire</li>
+                    <li>Révision de comptes</li>
+                    <li>Scans de documents comptables</li>
+                  </ul>
+                </div>
+                <div class="cv-entry">
+                  <div class="cv-entry-header">
+                    <strong>Plaquiste — Stagiaire</strong>
+                    <span class="cv-entry-date">Juin 2021</span>
+                  </div>
+                  <div class="cv-entry-sub">GI Isolation — Grenoble</div>
+                  <ul class="cv-entry-list">
+                    <li>Boisage, isolation de salles</li>
+                    <li>Pose de cloisons, réalisation de joints</li>
+                    <li>Traçage</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="cv-section">
+                <div class="cv-section-title">🛠️ Compétences Techniques</div>
+                <div class="cv-skills-grid">
+                  <div class="cv-skill-cat">
+                    <div class="cv-skill-cat-title">Réseaux</div>
+                    <div class="cv-skill-tags">
+                      <span>Cisco IOS</span><span>VLAN</span><span>OSPF</span><span>ACL</span><span>NAT</span>
+                    </div>
+                  </div>
+                  <div class="cv-skill-cat">
+                    <div class="cv-skill-cat-title">Systèmes</div>
+                    <div class="cv-skill-tags">
+                      <span>Windows Server</span><span>Linux</span><span>Active Directory</span><span>GPO</span>
+                    </div>
+                  </div>
+                  <div class="cv-skill-cat">
+                    <div class="cv-skill-cat-title">Sécurité</div>
+                    <div class="cv-skill-tags">
+                      <span>Firewall</span><span>Nmap</span><span>Wireshark</span><span>Hardening</span>
+                    </div>
+                  </div>
+                  <div class="cv-skill-cat">
+                    <div class="cv-skill-cat-title">Outils</div>
+                    <div class="cv-skill-tags">
+                      <span>GLPI</span><span>VMware</span><span>PowerShell</span><span>Python</span><span>Bash</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cv-section">
+                <div class="cv-section-title">🎯 Objectif</div>
+                <p class="cv-objective">Passionné par les réseaux et la cybersécurité, je souhaite poursuivre ma carrière dans la sécurité des systèmes d'information et devenir expert en sécurité des SI.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    }
+  };
+  return templates[id];
+}
+
+// ============================
+// PROJECT DATA
+// ============================
+const projects = [
+  // ── COMPÉTENCES ──
+  {
+    icon: '🌐', title: 'Cisco / Réseau',
+    meta: ['Catégorie : Compétence', 'Niveau : 85%', 'Type : Réseau'],
+    desc: 'Configuration et administration d\'équipements Cisco (routeurs, switchs). Création de VLANs, configuration des appareils via un Terminal, Conception d\'architectures réseau complètes.',
+    tags: ['Cisco IOS', 'OSPF', 'VLAN', 'ACL', 'NAT', 'Packet Tracer']
+  },
+  {
+    icon: '🐧', title: 'Linux',
+    meta: ['Catégorie : Compétence', 'Niveau : 80%', 'Type : Système'],
+    desc: 'Administration avancée de systèmes Linux (Debian, Ubuntu, CentOS). Gestion des services (Apache, GLPI, DHCP), scripting Bash, gestion des permissions, iptables/nftables, et supervision.',
+    tags: ['Debian', 'Ubuntu', 'Bash', 'Apache', 'iptables', 'systemd']
+  },
+  {
+    icon: '🪟', title: 'Windows Server',
+    meta: ['Catégorie : Compétence', 'Niveau : 82%', 'Type : Système'],
+    desc: 'Déploiement et administration de Windows Server (2012-2025). Active Directory, GPO, DNS, DHCP, serveur de fichiers (APP), Hyper-V, PowerShell, gestion des rôles et fonctionnalités, stratégies de sécurité.',
+    tags: ['Windows Server', 'AD DS', 'GPO', 'PowerShell', 'Hyper-V', 'DNS']
+  },
+  {
+    icon: '🛡️', title: 'Cybersécurité',
+    meta: ['Catégorie : Compétence', 'Niveau : 70%', 'Type : Sécurité'],
+    desc: 'Sensibilisation et mise en pratique de la sécurité informatique : analyse de vulnérabilités, durcissement de systèmes (mise en place d\'anti-virus ESET), gestion des pare-feu, analyse de logs, veille en cybersécurité, conformité et bonnes pratiques.',
+    tags: ['Nmap', 'Wireshark', 'Kali Linux', 'Firewall', 'Hardening', 'SIEM']
+  },
+  {
+    icon: '📡', title: 'Active Directory',
+    meta: ['Catégorie : Compétence', 'Niveau : 78%', 'Type : Infrastructure'],
+    desc: 'Conception et administration d\'environnements Active Directory : arborescence OU, stratégies de groupe (GPO), délégation, réplication, gestion des utilisateurs/groupes, scripts PowerShell d\'automatisation.',
+    tags: ['AD DS', 'GPO', 'OU', 'PowerShell', 'DNS intégré', 'Réplication']
+  },
+  {
+    icon: '🐍', title: 'Python',
+    meta: ['Catégorie : Compétence', 'Niveau : 35%', 'Type : Développement'],
+    desc: 'Programmation en Python pour l\'automatisation de tâches système et réseau : scripts d\'administration, parsing de logs, interaction avec des API REST, création d\'outils de monitoring et de sécurité.',
+    tags: ['Python 3', 'Automatisation', 'API REST', 'Scripting', 'Paramiko', 'Netmiko']
+  },
+  {
+    icon: '🔧', title: 'GLPI / ITSM',
+    meta: ['Catégorie : Compétence', 'Niveau : 75%', 'Type : Gestion'],
+    desc: 'Déploiement et administration de GLPI pour la gestion de parc et le helpdesk : inventaire automatisé avec FusionInventory, gestion des tickets, reporting et tableaux de bord.',
+    tags: ['GLPI', 'FusionInventory', 'Helpdesk', 'ITIL', 'MySQL', 'Reporting']
+  },
+  {
+    icon: '☁️', title: 'Virtualisation',
+    meta: ['Catégorie : Compétence', 'Niveau : 72%', 'Type : Infrastructure'],
+    desc: 'Mise en œuvre et/ou utilisation de solutions de virtualisation : VMwar, Hyper-V, VirtualBox. Création et gestion de VMs, snapshots, migration, allocation de ressources, réseau virtuel et stockage.',
+    tags: ['VMware', 'ESXi', 'Hyper-V', 'VirtualBox', 'vSwitch', 'Snapshots']
+  }
+];
+
+function selectProject(el, index) {
+  document.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+  el.classList.add('selected');
+  const p = projects[index];
+  const detail = document.getElementById('explorerDetail');
+  detail.classList.add('open');
+  document.getElementById('detailIcon').textContent = p.icon;
+  document.getElementById('detailTitle').textContent = p.title;
+  document.getElementById('detailMeta').innerHTML = p.meta.map(m => `<span>${m}</span>`).join('');
+  document.getElementById('detailDesc').textContent = p.desc;
+  document.getElementById('detailTags').innerHTML = p.tags.map(t => `<span class="detail-tag">${t}</span>`).join('');
+}
+
+// ============================
+// PROJETS DATA & LOGIC
+// ============================
+const projetsData = [
+  // ─── 🎓 ÉCOLE ───
+  {
+    icon: '🌐', title: 'Configuration Réseau Cisco',
+    context: 'ecole', category: 'Réseau & Télécom',
+    desc: 'Travaux pratiques de configuration de routeurs et switchs Cisco : VLAN, routage inter-VLAN, ACL, NAT/PAT, protocoles OSPF et EIGRP sur Packet Tracer.',
+    tags: ['Cisco', 'VLAN', 'OSPF', 'Packet Tracer'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '📡', title: 'Mise en place Active Directory',
+    context: 'ecole', category: 'Systèmes & Infrastructure',
+    desc: 'TP de déploiement d\'un domaine AD : création d\'OU, gestion des utilisateurs/groupes, stratégies GPO, DNS et DHCP intégrés.',
+    tags: ['Windows Server', 'AD DS', 'GPO', 'DNS'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '🐧', title: 'Administration Linux',
+    context: 'ecole', category: 'Systèmes & Infrastructure',
+    desc: 'Cours et TP sur l\'administration de serveurs Debian/Ubuntu : gestion des services (Apache, Bind9, DHCP), scripting Bash, permissions et pare-feu.',
+    tags: ['Debian', 'Bash', 'Apache', 'iptables'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '🛡️', title: 'Initiation Cybersécurité',
+    context: 'ecole', category: 'Cybersécurité',
+    desc: 'Module de sensibilisation à la cybersécurité : scan de ports avec Nmap, analyse de trames avec Wireshark, identification de vulnérabilités.',
+    tags: ['Nmap', 'Wireshark', 'Sécurité', 'Analyse'],
+    date: '2025', status: 'done'
+  },
+  {
+    icon: '💾', title: 'Base de Données SQL',
+    context: 'ecole', category: 'Développement',
+    desc: 'Conception et manipulation de bases de données relationnelles : modélisation MCD/MLD, requêtes SQL avancées, jointures, vues et procédures stockées.',
+    tags: ['MySQL', 'SQL', 'MCD', 'PhpMyAdmin'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '🐍', title: 'Programmation Python',
+    context: 'ecole', category: 'Développement',
+    desc: 'Cours de programmation Python : algorithmique, structures de données, scripts d\'automatisation, interaction avec fichiers et API.',
+    tags: ['Python 3', 'Algorithmique', 'Scripting'],
+    date: '2024-2025', status: 'done'
+  },
+  {
+    icon: '📋', title: 'Projet d\'Épreuve E5',
+    context: 'ecole', category: 'Projets BTS',
+    desc: 'Projet professionnel pour l\'épreuve E5 du BTS SIO : conception, réalisation et documentation d\'une solution d\'infrastructure réseau complète.',
+    tags: ['BTS SIO', 'E5', 'Documentation', 'Infrastructure'],
+    date: '2025', status: 'progress'
+  },
+
+  // ─── 🏢 ENTREPRISE ───
+  {
+    icon: '🔧', title: 'Déploiement GLPI',
+    context: 'entreprise', category: 'Gestion de Parc',
+    desc: 'Installation et configuration de GLPI pour la gestion du parc informatique : inventaire automatisé via FusionInventory, gestion des tickets et suivi des actifs.',
+    tags: ['GLPI', 'FusionInventory', 'ITSM', 'Helpdesk'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '📡', title: 'Administration Active Directory',
+    context: 'entreprise', category: 'Infrastructure',
+    desc: 'Gestion quotidienne de l\'AD en production : création de comptes, gestion des droits, GPO de sécurité, scripts PowerShell d\'automatisation des tâches récurrentes.',
+    tags: ['AD', 'PowerShell', 'GPO', 'Production'],
+    date: '2024-2025', status: 'done'
+  },
+  {
+    icon: '☁️', title: 'Infrastructure VMware',
+    context: 'entreprise', category: 'Virtualisation',
+    desc: 'Administration de l\'infrastructure VMware ESXi/vSphere : création et gestion de VMs, snapshots, surveillance des ressources, migration et maintenance.',
+    tags: ['VMware', 'ESXi', 'vSphere', 'VMs'],
+    date: '2024', status: 'done'
+  },
+  {
+    icon: '🎫', title: 'Support Utilisateurs N1/N2',
+    context: 'entreprise', category: 'Support & Helpdesk',
+    desc: 'Résolution de tickets de support de niveau 1 et 2 : diagnostic réseau, dépannage postes de travail, gestion des imprimantes, assistance à distance.',
+    tags: ['Helpdesk', 'Diagnostic', 'Support', 'Ticketing'],
+    date: '2024-2025', status: 'done'
+  },
+  {
+    icon: '🌐', title: 'Maintenance Réseau',
+    context: 'entreprise', category: 'Réseau',
+    desc: 'Participation à la maintenance de l\'infrastructure réseau : câblage, configuration switchs, diagnostic de pannes, surveillance avec outils de monitoring.',
+    tags: ['Réseau', 'Switch', 'Monitoring', 'Câblage'],
+    date: '2024-2025', status: 'done'
+  },
+  {
+    icon: '🔐', title: 'Durcissement Sécurité',
+    context: 'entreprise', category: 'Sécurité',
+    desc: 'Participation au renforcement de la sécurité du SI : mise à jour des politiques de mots de passe, audit des accès, configuration pare-feu, sensibilisation utilisateurs. Mise en place de VPN avec tunnels SSL et IPsec, ainsi que déploiement de l\'antivirus ESET sur le parc informatique.',
+    tags: ['Sécurité', 'Pare-feu', 'Audit', 'Hardening', 'VPN SSL', 'IPsec', 'ESET'],
+    date: '2025', status: 'progress'
+  },
+
+  // ─── 🏠 PERSONNEL ───
+  {
+    icon: '🛡️', title: 'Tests de sécurité',
+    context: 'perso', category: 'Cybersécurité',
+    desc: 'Environnement de test personnel pour la pratique du pentest : machines vulnérables (HackTheBox, TryHackMe), outils Kali Linux. Utilisation de Windows Sandbox comme bac à sable isolé pour analyser des fichiers suspects et tester l\'exploitation de failles de sécurité en toute sécurité.',
+    tags: ['Kali Linux', 'HackTheBox', 'TryHackMe', 'Pentest', 'Windows Sandbox'],
+    date: '2025', status: 'done'
+  },
+  {
+    icon: '💻', title: 'Serveur personnel',
+    context: 'perso', category: 'Infrastructure',
+    desc: 'Mise en place d\'un serveur personnel pour apprendre et expérimenter : virtualisation avec Proxmox, déploiement de services essentiels (DHCP, Active Directory), serveur de fichiers (SRV APP) et serveur TSE pour l\'accès bureau à distance.',
+    tags: ['Proxmox', 'DHCP', 'Active Directory', 'TSE', 'Serveur de fichiers'],
+    date: '2024-2025', status: 'done'
+  }
+];
+
+function initProjets() {
+  const container = document.getElementById('projetsContent');
+  if (!container) return;
+  renderProjets('all');
+}
+
+function switchProjetTab(tabEl, filter) {
+  document.querySelectorAll('.projets-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderProjets(filter);
+}
+
+function renderProjets(filter) {
+  const container = document.getElementById('projetsContent');
+  if (!container) return;
+
+  const filtered = filter === 'all' ? projetsData : projetsData.filter(p => p.context === filter);
+
+  // Group by category
+  const groups = {};
+  filtered.forEach(p => {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+
+  // Update counts
+  const countAll = document.getElementById('countAll');
+  const countEcole = document.getElementById('countEcole');
+  const countEntreprise = document.getElementById('countEntreprise');
+  const countPerso = document.getElementById('countPerso');
+  if (countAll) countAll.textContent = projetsData.length;
+  if (countEcole) countEcole.textContent = projetsData.filter(p => p.context === 'ecole').length;
+  if (countEntreprise) countEntreprise.textContent = projetsData.filter(p => p.context === 'entreprise').length;
+  if (countPerso) countPerso.textContent = projetsData.filter(p => p.context === 'perso').length;
+
+  const contextLabels = { ecole: 'École', entreprise: 'Entreprise', perso: 'Personnel' };
+  const statusLabels = { done: 'Terminé', progress: 'En cours', planned: 'Planifié' };
+
+  let html = '';
+  for (const [cat, items] of Object.entries(groups)) {
+    html += `
+      <div class="projets-category">
+        <div class="projets-category-header">
+          <span class="projets-category-icon">📂</span>
+          <span class="projets-category-title">${cat}</span>
+          <span class="projets-category-count">${items.length} élément${items.length > 1 ? 's' : ''}</span>
+        </div>
+    `;
+    items.forEach(p => {
+      html += `
+        <div class="projet-card" onclick="toggleProjetDesc(this)">
+          <div class="projet-card-icon">${p.icon}</div>
+          <div class="projet-card-body">
+            <div class="projet-card-title">
+              ${p.title}
+              <span class="projet-card-context ${p.context}">${contextLabels[p.context]}</span>
+            </div>
+            <div class="projet-card-desc">${p.desc}</div>
+            <div class="projet-card-footer">
+              ${p.tags.map(t => `<span class="projet-card-tag">${t}</span>`).join('')}
+              <span class="projet-card-date">📅 ${p.date}</span>
+            </div>
+          </div>
+          <div class="projet-card-status ${p.status}" title="${statusLabels[p.status]}"></div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function toggleProjetDesc(card) {
+  const desc = card.querySelector('.projet-card-desc');
+  desc.style.display = desc.style.display === 'none' ? '' : 'none';
+}
+
+// ============================
+// CONTACT FORM (FormSubmit.co)
+// ============================
+function handleContactSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('mailSendBtn');
+  const status = document.getElementById('mailStatus');
+  const form = e.target;
+
+  if (!btn || !status) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi...';
+  btn.classList.add('sending');
+  status.textContent = 'Envoi en cours...';
+
+  const fromEmail = document.getElementById('contactFrom').value;
+  const fromName = document.getElementById('contactName').value;
+  const subject = document.getElementById('contactSubject').value;
+  const message = document.getElementById('contactMessage').value;
+
+  const formData = new FormData();
+  formData.append('name', fromName);
+  formData.append('email', fromEmail);
+  formData.append('_subject', subject);
+  formData.append('message', message);
+  formData.append('_captcha', 'false');
+  formData.append('_template', 'table');
+
+  fetch('https://formsubmit.co/ajax/aymen.louraghi38@gmail.com', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      name: fromName,
+      email: fromEmail,
+      _subject: subject,
+      message: message,
+      _captcha: 'false',
+      _template: 'table',
+      _replyto: fromEmail
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const overlay = document.getElementById('mailSentOverlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.className = 'mail-sent-overlay';
+        overlay.innerHTML = `
+          <div class="mail-sent-icon">✅</div>
+          <div class="mail-sent-title">Message envoyé avec succès !</div>
+          <div class="mail-sent-sub">Votre email a été envoyé à aymen.louraghi38@gmail.com</div>
+          <div class="mail-sent-sub">Je vous répondrai dans les plus brefs délais.</div>
+          <button onclick="closeSentOverlay()" style="margin-top:1rem;padding:8px 24px;background:#0078d4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:var(--font);font-weight:600;">OK</button>
+        `;
+      }
+      showNotification('📤 Message envoyé !', 'Votre email a bien été envoyé à Aymen.');
+      form.reset();
+      status.textContent = 'Message envoyé ✓';
+    } else {
+      throw new Error('Envoi échoué');
+    }
+    btn.disabled = false;
+    btn.textContent = '📤 Envoyer';
+    btn.classList.remove('sending');
+  })
+  .catch(function(error) {
+    console.error('FormSubmit error:', error);
+    const mailtoUrl = 'mailto:aymen.louraghi38@gmail.com'
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent('De: ' + fromName + ' (' + fromEmail + ')\n\n' + message);
+    window.open(mailtoUrl, '_blank');
+    showNotification('📧 Redirection', 'Ouverture de votre client mail...');
+    btn.disabled = false;
+    btn.textContent = '📤 Envoyer';
+    btn.classList.remove('sending');
+    status.textContent = 'Prêt';
+  });
+}
+
+function resetContactForm() {
+  const form = document.getElementById('contactForm');
+  if (form) form.reset();
+  const overlay = document.getElementById('mailSentOverlay');
+  if (overlay) overlay.style.display = 'none';
+  const status = document.getElementById('mailStatus');
+  if (status) status.textContent = 'Prêt';
+}
+
+function closeSentOverlay() {
+  const overlay = document.getElementById('mailSentOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// ============================
+// CV DOWNLOAD
+// ============================
+function downloadCV() {
+  const cvUrl = 'CV_2026-02-11_Aymen_LOURAGHI.pdf';
+  const a = document.createElement('a');
+  a.href = cvUrl;
+  a.download = 'CV_Aymen_Louraghi.pdf';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showNotification('📄 Téléchargement', 'Téléchargement du CV en cours...');
+}
+
+// ============================
+// WINDOW MANAGEMENT
+// ============================
+function openWindow(id) {
+  // If already open, focus it
+  if (state.windows[id]) {
+    const win = state.windows[id];
+    if (win.classList.contains('minimized')) {
+      win.classList.remove('minimized');
+    }
+    focusWindow(id);
+    return;
+  }
+
+  const template = getWindowContent(id);
+  if (!template) return;
+
+  const win = document.createElement('div');
+  win.className = 'os-window focused';
+  win.id = 'window-' + id;
+  win.dataset.windowId = id;
+  win.style.width = template.width + 'px';
+  win.style.height = template.height + 'px';
+  // Center with offset based on number of windows
+  const offset = Object.keys(state.windows).length * 30;
+  win.style.left = Math.max(60, (window.innerWidth - template.width) / 2 + offset) + 'px';
+  win.style.top = Math.max(30, (window.innerHeight - template.height - 52) / 2 + offset) + 'px';
+  win.style.zIndex = ++state.zCounter;
+
+  win.innerHTML = `
+    <div class="window-titlebar" data-drag="true">
+      <span class="window-titlebar-icon">${template.icon}</span>
+      <span class="window-titlebar-text">${template.title}</span>
+      <div class="window-controls">
+        <button class="window-ctrl-btn minimize-btn" onclick="minimizeWindow('${id}')" title="Réduire">─</button>
+        <button class="window-ctrl-btn maximize-btn" onclick="maximizeWindow('${id}')" title="Agrandir">□</button>
+        <button class="window-ctrl-btn close-btn" onclick="closeWindow('${id}')" title="Fermer">✕</button>
+      </div>
+    </div>
+    <div class="window-body">${template.content}</div>
+    <div class="resize-handle" data-resize="true"></div>
+  `;
+
+  document.getElementById('desktop').appendChild(win);
+  state.windows[id] = win;
+  state.windowOrder.push(id);
+  focusWindow(id);
+  updateTaskbar();
+
+  // Init drag (skipped on mobile)
+  initDrag(win, id);
+  // Init resize (skipped on mobile)
+  if (!isMobile()) initResize(win);
+  // Window-specific init
+  if (id === 'accueil') initTypingEffect();
+  if (id === 'terminal') initTerminal();
+  if (id === 'projets') initProjets();
+
+  // Click to focus
+  win.addEventListener('mousedown', () => focusWindow(id));
+}
+
+function closeWindow(id) {
+  const win = state.windows[id];
+  if (!win) return;
+  win.classList.add('closing');
+  setTimeout(() => {
+    win.remove();
+    delete state.windows[id];
+    state.windowOrder = state.windowOrder.filter(w => w !== id);
+    updateTaskbar();
+  }, 250);
+}
+
+function minimizeWindow(id) {
+  const win = state.windows[id];
+  if (!win) return;
+  win.classList.add('minimized');
+  updateTaskbar();
+}
+
+function maximizeWindow(id) {
+  const win = state.windows[id];
+  if (!win) return;
+  if (win.classList.contains('maximized')) {
+    win.classList.remove('maximized');
+    // Restore saved position
+    if (win._savedRect) {
+      win.style.left = win._savedRect.left;
+      win.style.top = win._savedRect.top;
+      win.style.width = win._savedRect.width;
+      win.style.height = win._savedRect.height;
+    }
+  } else {
+    // Save current position
+    win._savedRect = {
+      left: win.style.left,
+      top: win.style.top,
+      width: win.style.width,
+      height: win.style.height,
+    };
+    win.classList.add('maximized');
+  }
+}
+
+function focusWindow(id) {
+  Object.values(state.windows).forEach(w => w.classList.remove('focused'));
+  const win = state.windows[id];
+  if (win) {
+    win.style.zIndex = ++state.zCounter;
+    win.classList.add('focused');
+  }
+  updateTaskbar();
+}
+
+function updateTaskbar() {
+  // Update active states on taskbar buttons
+  document.querySelectorAll('#taskbarApps .taskbar-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  // Mark active for open windows
+  for (const id of Object.keys(state.windows)) {
+    const btns = document.querySelectorAll('#taskbarApps .taskbar-btn');
+    btns.forEach(btn => {
+      const title = btn.getAttribute('title');
+      const map = {
+        'Accueil': 'accueil',
+        'À Propos': 'apropos',
+        'Réalisations': 'realisations',
+        'Projets': 'projets',
+        'Contact': 'contact',
+        'Terminal': 'terminal',
+      'CV': 'cv'
+      };
+      if (map[title] === id && !state.windows[id].classList.contains('minimized')) {
+        btn.classList.add('active');
+      }
+    });
+  }
+}
+
+// ============================
+// MOBILE DETECTION
+// ============================
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+// ============================
+// DRAG & DROP (leak-free, touch-aware)
+// ============================
+function initDrag(win, id) {
+  if (isMobile()) return; // No drag on mobile, windows are fullscreen
+  const titlebar = win.querySelector('[data-drag="true"]');
+  let isDragging = false;
+  let startX, startY, origLeft, origTop;
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    win.style.left = (origLeft + dx) + 'px';
+    win.style.top = Math.max(0, origTop + dy) + 'px';
+  }
+
+  function onMouseUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    // Snap to top edge = maximize
+    if (parseInt(win.style.top) <= 0 && !win.classList.contains('maximized')) {
+      maximizeWindow(id);
+    }
+  }
+
+  titlebar.addEventListener('mousedown', e => {
+    if (e.target.closest('.window-controls')) return;
+    if (win.classList.contains('maximized')) return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    origLeft = win.offsetLeft;
+    origTop = win.offsetTop;
+    focusWindow(id);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    e.preventDefault();
+  });
+
+  // Double-click titlebar to maximize
+  titlebar.addEventListener('dblclick', e => {
+    if (e.target.closest('.window-controls')) return;
+    maximizeWindow(id);
+  });
+}
+
+// ============================
+// RESIZE (leak-free)
+// ============================
+function initResize(win) {
+  const handle = win.querySelector('[data-resize="true"]');
+  if (!handle) return;
+  let isResizing = false;
+  let startX, startY, startW, startH;
+
+  function onMouseMove(e) {
+    if (!isResizing) return;
+    const w = Math.max(400, startW + (e.clientX - startX));
+    const h = Math.max(300, startH + (e.clientY - startY));
+    win.style.width = w + 'px';
+    win.style.height = h + 'px';
+  }
+
+  function onMouseUp() {
+    if (!isResizing) return;
+    isResizing = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  handle.addEventListener('mousedown', e => {
+    if (win.classList.contains('maximized')) return;
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = win.offsetWidth;
+    startH = win.offsetHeight;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+}
+
+// ============================
+// TYPING EFFECT (Accueil)
+// ============================
+function initTypingEffect() {
+  const lines = [
+    'echo "Bienvenue sur mon portfolio interactif"',
+    'cat parcours.txt → BTS SIO SISR | Alternance @ Konvergence',
+    'nmap -sV compétences → Réseaux, Sécurité, Systèmes...',
+    'status → Motivé et prêt à relever de nouveaux défis ! 🚀'
+  ];
+  const el = document.getElementById('typedText');
+  if (!el) return;
+
+  let lineIndex = 0;
+  let charIndex = 0;
+
+  function type() {
+    if (lineIndex >= lines.length) {
+      lineIndex = 0;
+      el.innerHTML = '';
+      setTimeout(type, 1500);
+      return;
+    }
+
+    if (charIndex <= lines[lineIndex].length) {
+      const line = lines[lineIndex];
+      const displayLine = line.substring(0, charIndex);
+      const allPrev = lines.slice(0, lineIndex).join('\n');
+      el.innerHTML = (allPrev ? allPrev + '\n' : '') + displayLine;
+      charIndex++;
+      setTimeout(type, 35 + Math.random() * 25);
+    } else {
+      charIndex = 0;
+      lineIndex++;
+      setTimeout(type, 800);
+    }
+  }
+  setTimeout(type, 500);
+}
+
+// ============================
+// TERMINAL (with command history)
+// ============================
+function initTerminal() {
+  const input = document.getElementById('terminalInput');
+  if (!input) return;
+  setTimeout(() => input.focus(), 100);
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const cmd = input.value.trim().toLowerCase();
+      input.value = '';
+      if (cmd) {
+        state.terminalHistory.push(cmd);
+        state.terminalHistoryIndex = state.terminalHistory.length;
+      }
+      processCommand(cmd);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (state.terminalHistoryIndex > 0) {
+        state.terminalHistoryIndex--;
+        input.value = state.terminalHistory[state.terminalHistoryIndex];
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (state.terminalHistoryIndex < state.terminalHistory.length - 1) {
+        state.terminalHistoryIndex++;
+        input.value = state.terminalHistory[state.terminalHistoryIndex];
+      } else {
+        state.terminalHistoryIndex = state.terminalHistory.length;
+        input.value = '';
+      }
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      const output = document.getElementById('terminalOutput');
+      if (output) output.innerHTML = '';
+    }
+  });
+
+  // Keep focus on terminal input when clicking terminal
+  const termContainer = input.closest('.terminal-container');
+  if (termContainer) {
+    termContainer.addEventListener('click', () => input.focus());
+  }
+}
+
+function processCommand(cmd) {
+  const output = document.getElementById('terminalOutput');
+  if (!output) return;
+
+  // Echo the command
+  output.innerHTML += `<div><span class="t-prompt">aymen@portfolio:~$</span> <span class="t-cmd">${escapeHtml(cmd)}</span></div>`;
+
+  if (!cmd) {
+    scrollTerminal();
+    return;
+  }
+
+  const commands = {
+    help: () => {
+      return `<div class="t-info">═══════════════════════════════════</div>
+<div class="t-info">  Commandes disponibles :</div>
+<div class="t-info">═══════════════════════════════════</div>
+<div><span class="t-cmd">help</span>      <span class="t-result">— Affiche cette aide</span></div>
+<div><span class="t-cmd">about</span>     <span class="t-result">— À propos de moi</span></div>
+<div><span class="t-cmd">skills</span>    <span class="t-result">— Mes compétences</span></div>
+<div><span class="t-cmd">projects</span>  <span class="t-result">— Mes projets</span></div>
+<div><span class="t-cmd">contact</span>   <span class="t-result">— Mes coordonnées</span></div>
+<div><span class="t-cmd">open</span>      <span class="t-result">— Ouvrir une fenêtre (ex: open projets)</span></div>
+<div><span class="t-cmd">ping</span>      <span class="t-result">— Ping simulation</span></div>
+<div><span class="t-cmd">whoami</span>    <span class="t-result">— Identité</span></div>
+<div><span class="t-cmd">date</span>      <span class="t-result">— Date et heure</span></div>
+<div><span class="t-cmd">neofetch</span>  <span class="t-result">— Infos système</span></div>
+<div><span class="t-cmd">history</span>   <span class="t-result">— Historique des commandes</span></div>
+<div><span class="t-cmd">matrix</span>    <span class="t-result">— 🔴💊 ou 🔵💊 ?</span></div>
+<div><span class="t-cmd">clear</span>     <span class="t-result">— Nettoyer le terminal</span></div>
+<div><span class="t-cmd">exit</span>      <span class="t-result">— Fermer le terminal</span></div>
+<div>&nbsp;</div>
+<div class="t-result"><em>↑/↓ pour naviguer l'historique • Ctrl+L pour effacer</em></div>`;
+    },
+    about: () => {
+      return `<div class="t-info">╔══════════════════════════════════╗</div>
+<div class="t-info">║  Aymen Louraghi — 19 ans          ║</div>
+<div class="t-info">║  BTS SIO SISR — CFP Charmilles   ║</div>
+<div class="t-info">║  Alternance : Konvergence         ║</div>
+<div class="t-info">║  Passion : Réseaux & Cybersécurité║</div>
+<div class="t-info">╚══════════════════════════════════╝</div>`;
+    },
+    skills: () => {
+      return `<div class="t-result">🌐 Réseaux Cisco ████████░░ 85%</div>
+<div class="t-result">🐧 Linux         ████████░░ 80%</div>
+<div class="t-result">🪟 Windows Server ████████░░ 82%</div>
+<div class="t-result">🛡️ Cybersécurité  ███████░░░ 70%</div>
+<div class="t-result">📡 Active Dir.    ███████░░░ 78%</div>
+<div class="t-result">🐍 Python         ███░░░░░░░ 35%</div>
+<div class="t-result">🔧 GLPI/ITSM      ███████░░░ 75%</div>
+<div class="t-result">☁️ Virtualisation  ███████░░░ 72%</div>`;
+    },
+    projects: () => {
+      return `<div class="t-result">📡 Active Directory — Infrastructure</div>
+<div class="t-result">🌐 Infrastructure Cisco — Réseau</div>
+<div class="t-result">🔧 GLPI — Gestion de parc</div>
+<div class="t-result">🐧 Serveur Linux — Système</div>
+<div class="t-result">🛡️ Audit Sécurité — Cybersécurité</div>
+<div class="t-result">☁️ Virtualisation VMware — Infrastructure</div>`;
+    },
+    contact: () => {
+      return `<div class="t-result">📧 aymen.louraghi38@gmail.com</div>
+<div class="t-result">💼 LinkedIn : fr.linkedin.com/in/aymen-louraghi-887ab9312</div>`;
+    },
+    ping: () => {
+      return `<div class="t-result">PING portfolio.aymen.dev (127.0.0.1) 56(84) bytes of data.</div>
+<div class="t-result">64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.028 ms</div>
+<div class="t-result">64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.031 ms</div>
+<div class="t-result">64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.024 ms</div>
+<div class="t-result">--- portfolio.aymen.dev ping statistics ---</div>
+<div class="t-result">3 packets transmitted, 3 received, 0% packet loss</div>`;
+    },
+    whoami: () => `<div class="t-result">aymen (Aymen Louraghi) — Étudiant BTS SIO SISR</div>`,
+    date: () => `<div class="t-result">${new Date().toLocaleString('fr-FR', { dateStyle:'full', timeStyle:'medium' })}</div>`,
+    neofetch: () => {
+      return `<div class="t-info">        .--.        </div>
+<div class="t-info">       |o  o|       <span class="t-result">aymen@portfolio</span></div>
+<div class="t-info">       | .. |       <span class="t-result">─────────────────</span></div>
+<div class="t-info">       |    |       <span class="t-result">OS: AymenOS v2.0</span></div>
+<div class="t-info">       '----'       <span class="t-result">Host: Portfolio Web</span></div>
+<div class="t-info">                    <span class="t-result">Kernel: HTML5/CSS3/JS</span></div>
+<div class="t-info">                    <span class="t-result">Uptime: depuis 2024</span></div>
+<div class="t-info">                    <span class="t-result">Shell: terminal.js</span></div>
+<div class="t-info">                    <span class="t-result">Theme: CyberDark</span></div>
+<div class="t-info">                    <span class="t-result">CPU: Motivation @ 100%</span></div>`;
+    },
+    matrix: () => {
+      return `<div class="t-warn">Wake up, Aymen...</div>
+<div class="t-warn">The Matrix has you...</div>
+<div class="t-warn">Follow the white rabbit. 🐇</div>
+<div>&nbsp;</div>
+<div class="t-result">01001000 01100101 01101100 01101100 01101111</div>`;
+    },
+    clear: () => {
+      output.innerHTML = '';
+      return '';
+    },
+    exit: () => {
+      closeWindow('terminal');
+      return '';
+    },
+    history: () => {
+      if (state.terminalHistory.length === 0) {
+        return `<div class="t-result">Aucune commande dans l'historique.</div>`;
+      }
+      return state.terminalHistory.map((c, i) =>
+        `<div class="t-result">${String(i + 1).padStart(4, ' ')}  ${escapeHtml(c)}</div>`
+      ).join('');
+    }
+  };
+
+  // Handle 'open <window>' command
+  if (cmd.startsWith('open ')) {
+    const target = cmd.split(' ')[1];
+    const validWindows = ['accueil', 'apropos', 'realisations', 'projets', 'contact', 'terminal'];
+    if (validWindows.includes(target)) {
+      output.innerHTML += `<div class="t-result">Ouverture de ${target}...</div>`;
+      setTimeout(() => openWindow(target), 300);
+    } else {
+      output.innerHTML += `<div class="t-error">Fenêtre inconnue : '${escapeHtml(target)}'. Disponibles : ${validWindows.join(', ')}</div>`;
+    }
+  } else {
+    const handler = commands[cmd];
+    if (handler) {
+      const result = handler();
+      if (result) output.innerHTML += result;
+    } else {
+      output.innerHTML += `<div class="t-error">Commande non reconnue : '${escapeHtml(cmd)}'. Tapez <span class="t-cmd">"help"</span> pour la liste des commandes.</div>`;
+    }
+  }
+
+  if (cmd !== 'clear' && cmd !== 'exit') {
+    output.innerHTML += '<div>&nbsp;</div>';
+  }
+  scrollTerminal();
+}
+
+function scrollTerminal() {
+  const output = document.getElementById('terminalOutput');
+  if (output) output.scrollTop = output.scrollHeight;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============================
+// AUTODESTRUCTION
+// ============================
+function triggerSelfDestruct() {
+  if (state.selfDestructActive) return;
+  state.selfDestructActive = true;
+
+  const overlay = document.getElementById('glitchOverlay');
+  const text = document.getElementById('glitchText');
+  const fireContainer = document.getElementById('fireParticles');
+
+  overlay.classList.add('active');
+  text.classList.add('active');
+
+  // Fire particles
+  const colors = ['#ff5252', '#ff9800', '#ffc107', '#ff5722'];
+  let particleInterval = setInterval(() => {
+    for (let i = 0; i < 5; i++) {
+      const p = document.createElement('div');
+      p.className = 'fire-particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.bottom = '0px';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.width = p.style.height = (4 + Math.random() * 8) + 'px';
+      p.style.animationDuration = (0.8 + Math.random() * 1.2) + 's';
+      fireContainer.appendChild(p);
+      setTimeout(() => p.remove(), 2000);
+    }
+  }, 50);
+
+  // Shake effect
+  document.body.style.animation = 'shake 0.1s infinite';
+  const shakeStyle = document.createElement('style');
+  shakeStyle.textContent = `
+    @keyframes shake {
+      0% { transform: translate(0); }
+      25% { transform: translate(-3px, 2px); }
+      50% { transform: translate(3px, -2px); }
+      75% { transform: translate(-2px, -3px); }
+      100% { transform: translate(2px, 3px); }
+    }
+  `;
+  document.head.appendChild(shakeStyle);
+
+  // Stop after 4 seconds
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    text.classList.remove('active');
+    clearInterval(particleInterval);
+    fireContainer.innerHTML = '';
+    document.body.style.animation = '';
+    shakeStyle.remove();
+    state.selfDestructActive = false;
+    showNotification('✅ Système restauré', 'Autodestruction annulée. Le portfolio est intact !');
+  }, 4000);
+}
+
+// ============================
+// DESKTOP ICON SELECTION
+// ============================
+document.querySelectorAll('.desktop-icon').forEach(icon => {
+  // Single tap to open on mobile, click to select on desktop
+  icon.addEventListener('click', function(e) {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+    this.classList.add('selected');
+    if (isMobile()) {
+      const winId = this.dataset.window;
+      if (winId) openWindow(winId);
+    }
+  });
+});
+
+// Click on desktop to deselect
+document.getElementById('desktop').addEventListener('click', function(e) {
+  if (e.target === this || e.target.closest('.particles')) {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+  }
+});
+
+// ============================
+// KEYBOARD SHORTCUTS
+// ============================
+document.addEventListener('keydown', e => {
+  // Escape to close start menu or focused window
+  if (e.key === 'Escape') {
+    if (state.startMenuOpen) {
+      toggleStartMenu();
+      return;
+    }
+    // Close topmost focused window
+    const focused = Object.entries(state.windows).find(([, w]) => w.classList.contains('focused'));
+    if (focused) closeWindow(focused[0]);
+  }
+  // Ctrl+Shift+T = open terminal
+  if (e.key === 'T' && e.ctrlKey && e.shiftKey) {
+    e.preventDefault();
+    openWindow('terminal');
+  }
+});
+
+</script>
+</body>
+</html>
