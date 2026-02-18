@@ -2968,137 +2968,15 @@ function getWindowContent(id) {
       icon: '📄',
       width: 720, height: 600,
       content: `
-        <div class="cv-viewer">
-          <div class="cv-toolbar">
-            <span class="cv-toolbar-title">📄 CV_2026-02-11_Aymen_LOURAGHI.pdf</span>
-            <div class="cv-toolbar-actions">
-              <button class="cv-download-btn" onclick="downloadCV()">⬇️ Télécharger le CV</button>
+        <div class="doc-viewer">
+          <div class="doc-viewer-toolbar">
+            <span class="doc-viewer-title">📄 CV_2026-02-18_Aymen_LOURAGHI.pdf</span>
+            <div class="doc-viewer-actions">
+              <button class="doc-viewer-btn" onclick="window.open('CV_2026-02-18_Aymen_LOURAGHI.pdf', '_blank')">🔗 Nouvel onglet</button>
+              <button class="doc-viewer-btn primary" onclick="downloadCV()">⬇️ Télécharger le CV</button>
             </div>
           </div>
-          <div class="cv-content">
-            <div class="cv-page">
-              <div class="cv-header-section">
-                <div class="cv-avatar-big">A</div>
-                <div class="cv-header-info">
-                  <h1 class="cv-name">Aymen Louraghi</h1>
-                  <div class="cv-subtitle">BTS SIO option SISR</div>
-                  <div class="cv-contact-row">
-                    <span>📧 aymen.louraghi38@gmail.com</span>
-                    <span>📍 Grenoble</span>
-                    <span>📞 07 69 87 11 15</span>
-                    <span>🚗 Mobilité</span>
-                    <span><a href="https://fr.linkedin.com/in/aymen-louraghi-887ab9312" target="_blank" style="color:var(--text-muted);text-decoration:none;">💼 LinkedIn</a></span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="cv-section">
-                <div class="cv-section-title">🎓 Formation</div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>BTS SIO — Services Informatiques aux Organisations</strong>
-                    <span class="cv-entry-date">Depuis 2024</span>
-                  </div>
-                  <div class="cv-entry-sub">CFP Les Charmilles — Saint-Martin-d'Hères</div>
-                </div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>Baccalauréat STMG — Spécialité Gestion Finance</strong>
-                    <span class="cv-entry-date">Sept. 2020 — Juil. 2023</span>
-                  </div>
-                  <div class="cv-entry-sub">Lycée Emmanuel Mounier — Grenoble</div>
-                  <div class="cv-entry-sub" style="color:var(--text);margin-top:4px;">Management, Science de Gestion et du numérique, Droit et économie</div>
-                </div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>Diplôme National du Brevet des Collèges</strong>
-                    <span class="cv-entry-date">2020</span>
-                  </div>
-                  <div class="cv-entry-sub">Collège Champollion — Grenoble</div>
-                </div>
-              </div>
-
-              <div class="cv-section">
-                <div class="cv-section-title">🏢 Expériences Professionnelles</div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>Technicien de maintenance informatique — Stagiaire</strong>
-                    <span class="cv-entry-date">Février 2024</span>
-                  </div>
-                  <div class="cv-entry-sub">Préfecture de l'Isère — Grenoble</div>
-                  <ul class="cv-entry-list">
-                    <li>Création d'algorithme d'automatisation de tâches</li>
-                    <li>Configuration d'équipement informatique (imprimante)</li>
-                    <li>Configuration de carte d'accès à un bâtiment</li>
-                    <li>Configuration de PC (branchement, installation Windows...)</li>
-                    <li>Gestion de tickets (Service RH)</li>
-                  </ul>
-                </div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>Expert-comptable — Stagiaire</strong>
-                    <span class="cv-entry-date">Février 2023</span>
-                  </div>
-                  <div class="cv-entry-sub">CSIG Isère — Meylan</div>
-                  <ul class="cv-entry-list">
-                    <li>Enregistrement des opérations courantes (achats, ventes, banque...)</li>
-                    <li>Enregistrement des opérations diverses du salaire</li>
-                    <li>Lettrage des comptes clients et fournisseurs</li>
-                    <li>Rapprochement bancaire</li>
-                    <li>Révision de comptes</li>
-                    <li>Scans de documents comptables</li>
-                  </ul>
-                </div>
-                <div class="cv-entry">
-                  <div class="cv-entry-header">
-                    <strong>Plaquiste — Stagiaire</strong>
-                    <span class="cv-entry-date">Juin 2021</span>
-                  </div>
-                  <div class="cv-entry-sub">GI Isolation — Grenoble</div>
-                  <ul class="cv-entry-list">
-                    <li>Boisage, isolation de salles</li>
-                    <li>Pose de cloisons, réalisation de joints</li>
-                    <li>Traçage</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="cv-section">
-                <div class="cv-section-title">🛠️ Compétences Techniques</div>
-                <div class="cv-skills-grid">
-                  <div class="cv-skill-cat">
-                    <div class="cv-skill-cat-title">Serveurs</div>
-                    <div class="cv-skill-tags">
-                      <span>Active Directory</span><span>GPO</span><span>Serveur TSE</span><span>Serveur APP</span><span>DHCP</span><span>DNS</span><span>Windows Server</span>
-                    </div>
-                  </div>
-                  <div class="cv-skill-cat">
-                    <div class="cv-skill-cat-title">Postes & Périphériques</div>
-                    <div class="cv-skill-tags">
-                      <span>Configuration PC</span><span>Installation logicielle</span><span>Résolution de pannes</span><span>Configuration scan/imprimantes</span>
-                    </div>
-                  </div>
-                  <div class="cv-skill-cat">
-                    <div class="cv-skill-cat-title">Sauvegardes & Stockage</div>
-                    <div class="cv-skill-tags">
-                      <span>VEEAM Backup</span><span>MaSauvegarde</span><span>Configuration NAS</span><span>Sauvegarde externalisée</span>
-                    </div>
-                  </div>
-                  <div class="cv-skill-cat">
-                    <div class="cv-skill-cat-title">Sécurité & Réseaux</div>
-                    <div class="cv-skill-tags">
-                      <span>Antivirus ESET</span><span>VPN SSL/IPsec</span><span>Pare-feu</span><span>VLAN</span><span>Cisco</span><span>Wireshark</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="cv-section">
-                <div class="cv-section-title">🎯 Objectif</div>
-                <p class="cv-objective">Passionné par les réseaux et la cybersécurité, je souhaite poursuivre ma carrière dans la sécurité des systèmes d'information et devenir expert en sécurité des SI.</p>
-              </div>
-            </div>
-          </div>
+          <iframe class="doc-viewer-frame" src="CV_2026-02-18_Aymen_LOURAGHI.pdf" title="CV Aymen Louraghi"></iframe>
         </div>
       `
     }
@@ -4040,7 +3918,7 @@ function closeSentOverlay() {
 // CV DOWNLOAD
 // ============================
 function downloadCV() {
-  const cvUrl = 'CV_2026-02-11_Aymen_LOURAGHI.pdf';
+  const cvUrl = 'CV_2026-02-18_Aymen_LOURAGHI.pdf';
   const a = document.createElement('a');
   a.href = cvUrl;
   a.download = 'CV_Aymen_Louraghi.pdf';
