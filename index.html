@@ -1577,6 +1577,78 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   margin: 4px 8px;
 }
 
+/* Context menu submenus */
+.context-menu-submenu {
+  position: relative;
+}
+.context-menu-submenu > .context-menu-label {
+  padding: 7px 16px;
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s;
+  justify-content: space-between;
+}
+.context-menu-submenu > .context-menu-label:hover {
+  background: rgba(0,212,255,0.1);
+}
+.context-menu-submenu > .context-menu-label::after {
+  content: '▸';
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.context-submenu {
+  position: absolute;
+  left: 100%;
+  top: -4px;
+  background: var(--bg-taskbar);
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 0;
+  min-width: 200px;
+  box-shadow: var(--shadow);
+  display: none;
+}
+.context-menu-submenu:hover > .context-submenu {
+  display: block;
+}
+.context-menu.flip-submenu .context-submenu {
+  left: auto;
+  right: 100%;
+}
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+.color-swatch.active {
+  border-color: var(--text-bright);
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
+/* Desktop wallpaper variants */
+#desktop.wallpaper-nebula {
+  background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #1a0533 60%, #3d1f8e 100%);
+}
+#desktop.wallpaper-matrix {
+  background: linear-gradient(160deg, #011a01 0%, #0a2e0a 30%, #011a01 60%, #0d3d0d 100%);
+}
+#desktop.wallpaper-sunset {
+  background: linear-gradient(160deg, #1a0a00 0%, #3d1a0a 30%, #1a0f05 60%, #4d2510 100%);
+}
+#desktop.wallpaper-ocean {
+  background: linear-gradient(160deg, #001020 0%, #002040 30%, #001830 60%, #003060 100%);
+}
+#desktop.wallpaper-minimal {
+  background: linear-gradient(160deg, #111 0%, #1a1a1a 30%, #111 60%, #222 100%);
+}
+
 /* ============================================
    RESPONSIVE / MOBILE
    ============================================ */
@@ -1932,6 +2004,29 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   <div class="context-menu-item" role="menuitem" onclick="openWindow('realisations')">📁  Ouvrir Réalisations</div>
   <div class="context-menu-item" role="menuitem" onclick="openWindow('projets')">📂  Ouvrir Projets</div>
   <div class="context-menu-separator" role="separator"></div>
+  <div class="context-menu-submenu">
+    <div class="context-menu-label">🖼️  Fond d'écran</div>
+    <div class="context-submenu" id="wallpaperSubmenu">
+      <div class="context-menu-item" onclick="setWallpaper('default')"><span class="color-swatch" style="background:linear-gradient(135deg,#0a0e27,#0d1442);"></span> Cyber (défaut)</div>
+      <div class="context-menu-item" onclick="setWallpaper('nebula')"><span class="color-swatch" style="background:linear-gradient(135deg,#1a0533,#3d1f8e);"></span> Nébuleuse</div>
+      <div class="context-menu-item" onclick="setWallpaper('matrix')"><span class="color-swatch" style="background:linear-gradient(135deg,#011a01,#0d3d0d);"></span> Matrix</div>
+      <div class="context-menu-item" onclick="setWallpaper('sunset')"><span class="color-swatch" style="background:linear-gradient(135deg,#1a0a00,#4d2510);"></span> Crépuscule</div>
+      <div class="context-menu-item" onclick="setWallpaper('ocean')"><span class="color-swatch" style="background:linear-gradient(135deg,#001020,#003060);"></span> Océan</div>
+      <div class="context-menu-item" onclick="setWallpaper('minimal')"><span class="color-swatch" style="background:linear-gradient(135deg,#111,#222);"></span> Minimal</div>
+    </div>
+  </div>
+  <div class="context-menu-submenu">
+    <div class="context-menu-label">🎨  Couleur d'accent</div>
+    <div class="context-submenu" id="accentSubmenu">
+      <div class="context-menu-item" onclick="setAccentColor('cyan')"><span class="color-swatch" style="background:#00d4ff;"></span> Cyan (défaut)</div>
+      <div class="context-menu-item" onclick="setAccentColor('green')"><span class="color-swatch" style="background:#00e676;"></span> Vert</div>
+      <div class="context-menu-item" onclick="setAccentColor('purple')"><span class="color-swatch" style="background:#bb86fc;"></span> Violet</div>
+      <div class="context-menu-item" onclick="setAccentColor('orange')"><span class="color-swatch" style="background:#ff9800;"></span> Orange</div>
+      <div class="context-menu-item" onclick="setAccentColor('pink')"><span class="color-swatch" style="background:#ff4081;"></span> Rose</div>
+      <div class="context-menu-item" onclick="setAccentColor('red')"><span class="color-swatch" style="background:#ff5252;"></span> Rouge</div>
+    </div>
+  </div>
+  <div class="context-menu-separator" role="separator"></div>
   <div class="context-menu-item" role="menuitem" onclick="openWindow('terminal')">⬛  Ouvrir Terminal</div>
   <div class="context-menu-item" role="menuitem" onclick="location.reload()">🔄  Actualiser</div>
 </div>
@@ -1971,6 +2066,138 @@ const state = {
   terminalHistoryIndex: -1,
   notifTimer: null,
 };
+
+// ============================
+// LOCAL STORAGE PERSISTENCE
+// ============================
+const LS_KEYS = {
+  WALLPAPER: 'portfolio_wallpaper',
+  ACCENT: 'portfolio_accent',
+  SENT_EMAILS: 'portfolio_sentEmails',
+  WINDOW_POSITIONS: 'portfolio_windowPositions',
+};
+
+function lsGet(key, fallback = null) {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? JSON.parse(val) : fallback;
+  } catch { return fallback; }
+}
+
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+// ============================
+// WALLPAPER (localStorage)
+// ============================
+const WALLPAPER_NAMES = {
+  default: 'Cyber', nebula: 'Nébuleuse', matrix: 'Matrix',
+  sunset: 'Crépuscule', ocean: 'Océan', minimal: 'Minimal'
+};
+
+function setWallpaper(name) {
+  const desktop = document.getElementById('desktop');
+  desktop.className = desktop.className.replace(/\bwallpaper-\S+/g, '').trim();
+  if (name !== 'default') {
+    desktop.classList.add('wallpaper-' + name);
+  }
+  lsSet(LS_KEYS.WALLPAPER, name);
+  showNotification('🖼️ Fond d\'écran', `Fond "${WALLPAPER_NAMES[name] || name}" appliqué et sauvegardé.`);
+  updateWallpaperSwatches(name);
+}
+
+function loadWallpaper() {
+  const saved = lsGet(LS_KEYS.WALLPAPER, 'default');
+  if (saved !== 'default') {
+    document.getElementById('desktop').classList.add('wallpaper-' + saved);
+  }
+  updateWallpaperSwatches(saved);
+}
+
+function updateWallpaperSwatches(active) {
+  document.querySelectorAll('#wallpaperSubmenu .context-menu-item').forEach(item => {
+    const swatch = item.querySelector('.color-swatch');
+    if (!swatch) return;
+    const onclick = item.getAttribute('onclick') || '';
+    swatch.classList.toggle('active', onclick.includes("'" + active + "'"));
+  });
+}
+
+// ============================
+// ACCENT COLOR (localStorage)
+// ============================
+const ACCENT_COLORS = {
+  cyan:   { primary: '#00d4ff', dark: '#00a0c4' },
+  green:  { primary: '#00e676', dark: '#00b85c' },
+  purple: { primary: '#bb86fc', dark: '#9a67ea' },
+  orange: { primary: '#ff9800', dark: '#e68a00' },
+  pink:   { primary: '#ff4081', dark: '#e03070' },
+  red:    { primary: '#ff5252', dark: '#e04040' },
+};
+
+function setAccentColor(name) {
+  const colors = ACCENT_COLORS[name];
+  if (!colors) return;
+  document.documentElement.style.setProperty('--primary', colors.primary);
+  document.documentElement.style.setProperty('--primary-dark', colors.dark);
+  lsSet(LS_KEYS.ACCENT, name);
+  showNotification('🎨 Couleur d\'accent', `Couleur "${name}" appliquée et sauvegardée.`);
+  updateAccentSwatches(name);
+}
+
+function loadAccentColor() {
+  const saved = lsGet(LS_KEYS.ACCENT, 'cyan');
+  const colors = ACCENT_COLORS[saved];
+  if (colors) {
+    document.documentElement.style.setProperty('--primary', colors.primary);
+    document.documentElement.style.setProperty('--primary-dark', colors.dark);
+  }
+  updateAccentSwatches(saved);
+}
+
+function updateAccentSwatches(active) {
+  document.querySelectorAll('#accentSubmenu .context-menu-item').forEach(item => {
+    const swatch = item.querySelector('.color-swatch');
+    if (!swatch) return;
+    const onclick = item.getAttribute('onclick') || '';
+    swatch.classList.toggle('active', onclick.includes("'" + active + "'"));
+  });
+}
+
+// ============================
+// EMAIL PERSISTENCE (localStorage)
+// ============================
+function loadSentEmails() {
+  const saved = lsGet(LS_KEYS.SENT_EMAILS, []);
+  saved.forEach(mail => { mail.date = new Date(mail.date); });
+  sentEmails.push(...saved);
+}
+
+function saveSentEmails() {
+  lsSet(LS_KEYS.SENT_EMAILS, sentEmails);
+}
+
+// ============================
+// WINDOW POSITIONS (localStorage)
+// ============================
+function saveWindowPosition(id) {
+  const win = state.windows[id];
+  if (!win || win.classList.contains('maximized') || isMobile()) return;
+  const positions = lsGet(LS_KEYS.WINDOW_POSITIONS, {});
+  positions[id] = {
+    left: win.style.left,
+    top: win.style.top,
+    width: win.style.width,
+    height: win.style.height,
+  };
+  lsSet(LS_KEYS.WINDOW_POSITIONS, positions);
+}
+
+function getSavedWindowPosition(id) {
+  const positions = lsGet(LS_KEYS.WINDOW_POSITIONS, {});
+  return positions[id] || null;
+}
 
 // ============================
 // BOOT SEQUENCE
@@ -2068,10 +2295,12 @@ document.getElementById('desktop').addEventListener('contextmenu', e => {
   const cm = document.getElementById('contextMenu');
   // Clamp to viewport
   const x = Math.min(e.clientX, window.innerWidth - 220);
-  const y = Math.min(e.clientY, window.innerHeight - 200);
+  const y = Math.min(e.clientY, window.innerHeight - 350);
   cm.style.left = x + 'px';
   cm.style.top = y + 'px';
   cm.classList.add('visible');
+  // Flip submenus if near right edge
+  cm.classList.toggle('flip-submenu', x + 420 > window.innerWidth);
 });
 document.addEventListener('click', () => {
   document.getElementById('contextMenu').classList.remove('visible');
@@ -2836,6 +3065,7 @@ function handleContactSubmit(e) {
         message: message,
         date: new Date()
       });
+      saveSentEmails();
       updateSentCount();
 
       const overlay = document.getElementById('mailSentOverlay');
@@ -3126,6 +3356,16 @@ function openWindow(id) {
   const offset = Object.keys(state.windows).length * 30;
   win.style.left = Math.max(60, (window.innerWidth - template.width) / 2 + offset) + 'px';
   win.style.top = Math.max(30, (window.innerHeight - template.height - 52) / 2 + offset) + 'px';
+
+  // Restore saved position from localStorage
+  const savedPos = getSavedWindowPosition(id);
+  if (savedPos && !isMobile()) {
+    win.style.left = savedPos.left;
+    win.style.top = savedPos.top;
+    win.style.width = savedPos.width;
+    win.style.height = savedPos.height;
+  }
+
   win.style.zIndex = ++state.zCounter;
 
   win.innerHTML = `
@@ -3272,6 +3512,8 @@ function initDrag(win, id) {
     // Snap to top edge = maximize
     if (parseInt(win.style.top) <= 0 && !win.classList.contains('maximized')) {
       maximizeWindow(id);
+    } else {
+      saveWindowPosition(id);
     }
   }
 
@@ -3318,6 +3560,7 @@ function initResize(win) {
     isResizing = false;
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
+    saveWindowPosition(win.dataset.windowId);
   }
 
   handle.addEventListener('mousedown', e => {
@@ -3443,6 +3686,8 @@ function processCommand(cmd) {
 <div><span class="t-cmd">projects</span>  <span class="t-result">— Mes projets</span></div>
 <div><span class="t-cmd">contact</span>   <span class="t-result">— Mes coordonnées</span></div>
 <div><span class="t-cmd">open</span>      <span class="t-result">— Ouvrir une fenêtre (ex: open projets)</span></div>
+<div><span class="t-cmd">wallpaper</span> <span class="t-result">— Changer le fond d'écran</span></div>
+<div><span class="t-cmd">theme</span>     <span class="t-result">— Changer la couleur d'accent</span></div>
 <div><span class="t-cmd">ping</span>      <span class="t-result">— Ping simulation</span></div>
 <div><span class="t-cmd">whoami</span>    <span class="t-result">— Identité</span></div>
 <div><span class="t-cmd">date</span>      <span class="t-result">— Date et heure</span></div>
@@ -3531,8 +3776,38 @@ function processCommand(cmd) {
     }
   };
 
+  // Handle wallpaper command
+  if (cmd === 'wallpaper' || cmd.startsWith('wallpaper ')) {
+    const name = cmd.split(' ')[1];
+    if (!name) {
+      output.innerHTML += `<div class="t-result">Fonds disponibles : ${Object.keys(WALLPAPER_NAMES).join(', ')}</div>`;
+      output.innerHTML += `<div class="t-result">Usage : <span class="t-cmd">wallpaper &lt;nom&gt;</span></div>`;
+    } else {
+      if (WALLPAPER_NAMES[name]) {
+        setWallpaper(name);
+        output.innerHTML += `<div class="t-result">✅ Fond d'écran "${WALLPAPER_NAMES[name]}" appliqué.</div>`;
+      } else {
+        output.innerHTML += `<div class="t-error">Fond inconnu : '${escapeHtml(name)}'. Disponibles : ${Object.keys(WALLPAPER_NAMES).join(', ')}</div>`;
+      }
+    }
+  }
+  // Handle theme command
+  else if (cmd === 'theme' || cmd.startsWith('theme ')) {
+    const name = cmd.split(' ')[1];
+    if (!name) {
+      output.innerHTML += `<div class="t-result">Couleurs disponibles : ${Object.keys(ACCENT_COLORS).join(', ')}</div>`;
+      output.innerHTML += `<div class="t-result">Usage : <span class="t-cmd">theme &lt;couleur&gt;</span></div>`;
+    } else {
+      if (ACCENT_COLORS[name]) {
+        setAccentColor(name);
+        output.innerHTML += `<div class="t-result">✅ Couleur "${name}" appliquée.</div>`;
+      } else {
+        output.innerHTML += `<div class="t-error">Couleur inconnue : '${escapeHtml(name)}'. Disponibles : ${Object.keys(ACCENT_COLORS).join(', ')}</div>`;
+      }
+    }
+  }
   // Handle 'open <window>' command
-  if (cmd.startsWith('open ')) {
+  else if (cmd.startsWith('open ')) {
     const target = cmd.split(' ')[1];
     const validWindows = ['accueil', 'apropos', 'realisations', 'projets', 'contact', 'terminal'];
     if (validWindows.includes(target)) {
@@ -3667,6 +3942,13 @@ document.addEventListener('keydown', e => {
     openWindow('terminal');
   }
 });
+
+// ============================
+// INITIALIZE LOCALSTORAGE
+// ============================
+loadWallpaper();
+loadAccentColor();
+loadSentEmails();
 
 </script>
 </body>
