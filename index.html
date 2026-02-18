@@ -847,6 +847,201 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
 }
 
 /* ============================================
+   WINDOW: SCOLARITÉ (File Explorer Tree)
+   ============================================ */
+.scolaire-container { display:flex; height:100%; }
+.scolaire-tree {
+  width: clamp(180px, 22vw, 240px);
+  background: rgba(0,0,0,0.25);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+.tree-node {
+  user-select: none;
+}
+.tree-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px calc(12px + var(--tree-depth, 0) * 16px);
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 0;
+}
+.tree-node-header:hover { background: rgba(255,255,255,0.06); }
+.tree-node-header.active {
+  background: rgba(0,212,255,0.1);
+  color: var(--primary);
+}
+.tree-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.tree-chevron.open { transform: rotate(90deg); }
+.tree-chevron.empty { visibility: hidden; }
+.tree-node-icon { font-size: 1rem; flex-shrink: 0; }
+.tree-node-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tree-children {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+.tree-children.open {
+  max-height: 500px;
+}
+.scolaire-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.scolaire-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.scolaire-path {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.scolaire-path span {
+  color: var(--text);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.scolaire-path span:hover { color: var(--primary); }
+.scolaire-path-sep { color: var(--text-muted); font-size: 0.7rem; }
+.scolaire-grid {
+  flex: 1;
+  padding: clamp(0.8rem, 1.5vw, 1.5rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(90px, 12vw, 140px), 1fr));
+  gap: clamp(8px, 1vw, 14px);
+  align-content: start;
+  overflow-y: auto;
+}
+.scolaire-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.scolaire-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border);
+}
+.scolaire-item.selected {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+}
+.scolaire-item-icon { font-size: 2.5rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3)); }
+.scolaire-item-name {
+  font-size: 0.75rem;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+.scolaire-item-meta {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+.scolaire-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.scolaire-empty-icon { font-size: 3rem; opacity: 0.4; }
+.scolaire-detail {
+  width: 0;
+  border-left: 1px solid var(--border);
+  padding: 0;
+  overflow: hidden;
+  background: rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
+  opacity: 0;
+}
+.scolaire-detail.open {
+  width: clamp(220px, 28vw, 320px);
+  padding: clamp(0.8rem, 1.5vw, 1.5rem);
+  overflow-y: auto;
+  opacity: 1;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease, opacity 0.2s 0.1s ease;
+}
+.scolaire-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.scolaire-detail-icon { font-size: 2rem; }
+.scolaire-detail-title { font-size: 1rem; font-weight: 600; color: var(--text-bright); }
+.scolaire-detail-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.scolaire-detail-desc {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+.scolaire-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scolaire-detail-tag {
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0,212,255,0.1);
+  color: var(--primary);
+  font-size: 0.7rem;
+}
+.scolaire-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+/* ============================================
    WINDOW: CONTACT (Outlook-style Mail App)
    ============================================ */
 .mail-container { display:flex; height:100%; }
@@ -1774,6 +1969,21 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     max-height:45%;
   }
 
+  /* ── Scolarité explorer mobile ── */
+  .scolaire-container { flex-direction:column; }
+  .scolaire-tree { width:100%; max-height:120px; border-right:none; border-bottom:1px solid var(--border); }
+  .scolaire-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; padding:0.6rem; }
+  .scolaire-item { padding:10px 6px; }
+  .scolaire-item-icon { font-size:1.8rem; }
+  .scolaire-item-name { font-size:0.65rem; }
+  .scolaire-detail.open {
+    width:100% !important;
+    border-left:none;
+    border-top:1px solid var(--border);
+    padding:1rem;
+    max-height:40%;
+  }
+
   /* ── Contact mail mobile ── */
   .mail-container { flex-direction:column; }
   .mail-sidebar-left {
@@ -1919,6 +2129,10 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
       <div class="desktop-icon-img">⬛</div>
       <div class="desktop-icon-label">Terminal</div>
     </div>
+    <div class="desktop-icon" data-window="scolarite" ondblclick="openWindow('scolarite')">
+      <div class="desktop-icon-img">🎓</div>
+      <div class="desktop-icon-label">Scolarité</div>
+    </div>
     <div class="desktop-icon" data-window="cv" ondblclick="openWindow('cv')">
       <div class="desktop-icon-img">📄</div>
       <div class="desktop-icon-label">CV.pdf</div>
@@ -1938,6 +2152,7 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     <button class="taskbar-btn" onclick="openWindow('projets')" title="Projets">📂</button>
     <button class="taskbar-btn" onclick="openWindow('contact')" title="Contact">📨</button>
     <button class="taskbar-btn" onclick="openWindow('terminal')" title="Terminal">⬛</button>
+    <button class="taskbar-btn" onclick="openWindow('scolarite')" title="Scolarité">🎓</button>
     <button class="taskbar-btn" onclick="openWindow('cv')" title="CV">📄</button>
     <button class="taskbar-btn" onclick="triggerSelfDestruct()" title="Autodestruction" style="color:var(--accent-red);">☢️</button>
   </div>
@@ -1981,6 +2196,10 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     <div class="start-app" onclick="openWindow('terminal'); toggleStartMenu();">
       <div class="start-app-icon">⬛</div>
       <div class="start-app-label">Terminal</div>
+    </div>
+    <div class="start-app" onclick="openWindow('scolarite'); toggleStartMenu();">
+      <div class="start-app-icon">🎓</div>
+      <div class="start-app-label">Scolarité</div>
     </div>
     <div class="start-app" onclick="openWindow('cv'); toggleStartMenu();">
       <div class="start-app-icon">📄</div>
@@ -2497,6 +2716,41 @@ function getWindowContent(id) {
         </div>
       `
     },
+    scolarite: {
+      title: 'Scolarité — Explorateur',
+      icon: '🎓',
+      width: 900, height: 600,
+      content: `
+        <div class="scolaire-container">
+          <div class="scolaire-tree" id="scolariteTree"></div>
+          <div class="scolaire-main">
+            <div class="scolaire-toolbar">
+              <div class="scolaire-path" id="scolaritePath">
+                <span onclick="navigateScolarite('root')">💻 Ce PC</span>
+                <span class="scolaire-path-sep">›</span>
+                <span onclick="navigateScolarite('root')">🎓 Scolarité</span>
+              </div>
+            </div>
+            <div style="display:flex;flex:1;overflow:hidden;">
+              <div class="scolaire-grid" id="scolariteGrid"></div>
+              <div class="scolaire-detail" id="scolariteDetail">
+                <div class="scolaire-detail-header">
+                  <div class="scolaire-detail-icon" id="scoDetailIcon">📄</div>
+                  <div class="scolaire-detail-title" id="scoDetailTitle">Sélectionnez un fichier</div>
+                </div>
+                <div class="scolaire-detail-meta" id="scoDetailMeta"><span>—</span></div>
+                <div class="scolaire-detail-desc" id="scoDetailDesc">Cliquez sur un fichier pour voir ses détails.</div>
+                <div class="scolaire-detail-tags" id="scoDetailTags"></div>
+              </div>
+            </div>
+            <div class="scolaire-statusbar">
+              <span id="scolariteCount">0 éléments</span>
+              <span id="scolariteLocation">Scolarité</span>
+            </div>
+          </div>
+        </div>
+      `
+    },
     projets: {
       title: 'Projets — Tableau de bord',
       icon: '📂',
@@ -2818,6 +3072,273 @@ function selectProject(el, index) {
   document.getElementById('detailMeta').innerHTML = p.meta.map(m => `<span>${m}</span>`).join('');
   document.getElementById('detailDesc').textContent = p.desc;
   document.getElementById('detailTags').innerHTML = p.tags.map(t => `<span class="detail-tag">${t}</span>`).join('');
+}
+
+// ============================
+// SCOLARITÉ - FILE EXPLORER TREE
+// ============================
+const scolariteData = {
+  id: 'root',
+  name: 'Scolarité',
+  icon: '🎓',
+  type: 'folder',
+  children: [
+    {
+      id: 'annee1',
+      name: 'Année 1 (2024-2025)',
+      icon: '📁',
+      type: 'folder',
+      children: [
+        {
+          id: 'a1-cisco',
+          name: 'TP_Réseau_Cisco.pkt',
+          icon: '🌐',
+          type: 'file',
+          meta: ['Type : Packet Tracer', 'Taille : 2.4 Mo', 'Date : Sept 2024', 'Contexte : TP école'],
+          desc: 'Configuration de routeurs et switchs Cisco : VLAN, routage inter-VLAN, ACL, NAT/PAT sur Packet Tracer.',
+          tags: ['Cisco', 'VLAN', 'Routage', 'Packet Tracer']
+        },
+        {
+          id: 'a1-linux',
+          name: 'Admin_Linux.sh',
+          icon: '🐧',
+          type: 'file',
+          meta: ['Type : Script Bash', 'Taille : 18 Ko', 'Date : Oct 2024', 'Contexte : TP école'],
+          desc: 'Administration de serveurs Debian : gestion des services Apache, Bind9, DHCP, scripting Bash et permissions.',
+          tags: ['Debian', 'Bash', 'Apache', 'Services']
+        },
+        {
+          id: 'a1-windows',
+          name: 'Windows_Server.docx',
+          icon: '🪟',
+          type: 'file',
+          meta: ['Type : Document', 'Taille : 5.1 Mo', 'Date : Nov 2024', 'Contexte : TP école'],
+          desc: 'Déploiement Windows Server : installation AD DS, DNS, DHCP, création d\'OU et stratégies GPO.',
+          tags: ['Windows Server', 'AD DS', 'GPO', 'DNS']
+        },
+        {
+          id: 'a1-sql',
+          name: 'Base_Données.sql',
+          icon: '💾',
+          type: 'file',
+          meta: ['Type : Script SQL', 'Taille : 42 Ko', 'Date : Déc 2024', 'Contexte : Cours'],
+          desc: 'Conception et manipulation de bases de données relationnelles : MCD/MLD, requêtes SQL, jointures, vues.',
+          tags: ['MySQL', 'SQL', 'MCD', 'PhpMyAdmin']
+        },
+        {
+          id: 'a1-python',
+          name: 'Projet_Python.py',
+          icon: '🐍',
+          type: 'file',
+          meta: ['Type : Script Python', 'Taille : 8 Ko', 'Date : Jan 2025', 'Contexte : TP école'],
+          desc: 'Programmation Python : algorithmique, structures de données, scripts d\'automatisation réseau.',
+          tags: ['Python 3', 'Algorithmique', 'Scripting']
+        }
+      ]
+    },
+    {
+      id: 'annee2',
+      name: 'Année 2 (2025-2026)',
+      icon: '📁',
+      type: 'folder',
+      children: [
+        {
+          id: 'a2-cybersec',
+          name: 'Audit_Sécurité.pdf',
+          icon: '🛡️',
+          type: 'file',
+          meta: ['Type : Rapport PDF', 'Taille : 3.8 Mo', 'Date : Sept 2025', 'Contexte : TP école'],
+          desc: 'Module cybersécurité : scan de ports Nmap, analyse de trames Wireshark, identification de vulnérabilités.',
+          tags: ['Nmap', 'Wireshark', 'Sécurité', 'Audit']
+        },
+        {
+          id: 'a2-glpi',
+          name: 'GLPI_Config.conf',
+          icon: '🔧',
+          type: 'file',
+          meta: ['Type : Configuration', 'Taille : 12 Ko', 'Date : Oct 2025', 'Contexte : Entreprise'],
+          desc: 'Déploiement GLPI : inventaire FusionInventory, gestion de tickets helpdesk, reporting.',
+          tags: ['GLPI', 'FusionInventory', 'Helpdesk', 'ITIL']
+        },
+        {
+          id: 'a2-virtualisation',
+          name: 'Infra_Virtuelle.vmx',
+          icon: '☁️',
+          type: 'file',
+          meta: ['Type : Config VMware', 'Taille : 4 Ko', 'Date : Nov 2025', 'Contexte : TP école'],
+          desc: 'Virtualisation avec VMware et Hyper-V : création de VMs, snapshots, migration, réseau virtuel.',
+          tags: ['VMware', 'Hyper-V', 'VirtualBox', 'ESXi']
+        },
+        {
+          id: 'a2-portfolio',
+          name: 'Portfolio.html',
+          icon: '💻',
+          type: 'file',
+          meta: ['Type : Page Web', 'Taille : 156 Ko', 'Date : Fév 2026', 'Contexte : Personnel'],
+          desc: 'Création de ce portfolio interactif simulant un OS : HTML, CSS, JavaScript vanilla.',
+          tags: ['HTML5', 'CSS3', 'JavaScript', 'Portfolio']
+        }
+      ]
+    }
+  ]
+};
+
+let scolariteCurrentPath = 'root';
+
+function initScolarite() {
+  buildScolariteTree();
+  navigateScolarite('root');
+}
+
+function buildScolariteTree() {
+  const treeEl = document.getElementById('scolariteTree');
+  if (!treeEl) return;
+  treeEl.innerHTML = renderTreeNode(scolariteData, 0);
+}
+
+function renderTreeNode(node, depth) {
+  if (node.type !== 'folder') return '';
+  const hasChildren = node.children && node.children.some(c => c.type === 'folder');
+  const chevronClass = hasChildren ? '' : 'empty';
+  let html = `<div class="tree-node" data-id="${node.id}">`;
+  html += `<div class="tree-node-header" style="--tree-depth:${depth}" onclick="onTreeNodeClick('${node.id}')">`;
+  html += `<span class="tree-chevron ${chevronClass}" id="chevron-${node.id}">▶</span>`;
+  html += `<span class="tree-node-icon">${node.icon}</span>`;
+  html += `<span class="tree-node-label">${node.name}</span>`;
+  html += `</div>`;
+  if (node.children) {
+    html += `<div class="tree-children" id="tree-children-${node.id}">`;
+    node.children.forEach(child => {
+      if (child.type === 'folder') {
+        html += renderTreeNode(child, depth + 1);
+      }
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function onTreeNodeClick(nodeId) {
+  // Toggle tree expansion
+  const childrenEl = document.getElementById('tree-children-' + nodeId);
+  const chevron = document.getElementById('chevron-' + nodeId);
+  if (childrenEl) {
+    childrenEl.classList.toggle('open');
+  }
+  if (chevron && !chevron.classList.contains('empty')) {
+    chevron.classList.toggle('open');
+  }
+  // Navigate to this folder
+  navigateScolarite(nodeId);
+}
+
+function findNode(node, id) {
+  if (node.id === id) return node;
+  if (node.children) {
+    for (const child of node.children) {
+      const found = findNode(child, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getNodePath(node, targetId, path = []) {
+  path.push(node);
+  if (node.id === targetId) return [...path];
+  if (node.children) {
+    for (const child of node.children) {
+      const result = getNodePath(child, targetId, [...path]);
+      if (result) return result;
+    }
+  }
+  return null;
+}
+
+function navigateScolarite(nodeId) {
+  const node = findNode(scolariteData, nodeId);
+  if (!node) return;
+  scolariteCurrentPath = nodeId;
+
+  // Update tree active states
+  document.querySelectorAll('.tree-node-header').forEach(h => h.classList.remove('active'));
+  const activeHeader = document.querySelector(`.tree-node[data-id="${nodeId}"] > .tree-node-header`);
+  if (activeHeader) activeHeader.classList.add('active');
+
+  // Update breadcrumb path
+  const pathEl = document.getElementById('scolaritePath');
+  if (pathEl) {
+    const breadcrumb = getNodePath(scolariteData, nodeId);
+    if (breadcrumb) {
+      pathEl.innerHTML = `<span onclick="navigateScolarite('root')">💻 Ce PC</span>`;
+      breadcrumb.forEach((b, i) => {
+        pathEl.innerHTML += `<span class="scolaire-path-sep">›</span>`;
+        pathEl.innerHTML += `<span onclick="navigateScolarite('${b.id}')">${b.icon} ${b.name}</span>`;
+      });
+    }
+  }
+
+  // Render grid contents
+  const grid = document.getElementById('scolariteGrid');
+  if (!grid) return;
+
+  const items = node.children || [];
+  if (items.length === 0) {
+    grid.innerHTML = `<div class="scolaire-empty"><div class="scolaire-empty-icon">📂</div><div>Ce dossier est vide</div></div>`;
+  } else {
+    grid.innerHTML = items.map(item => `
+      <div class="scolaire-item" onclick="onScolariteItemClick('${item.id}')" ondblclick="onScolariteItemDblClick('${item.id}')">
+        <div class="scolaire-item-icon">${item.icon}</div>
+        <div class="scolaire-item-name">${item.name}</div>
+        ${item.type === 'folder' ? `<div class="scolaire-item-meta">${(item.children || []).length} éléments</div>` : `<div class="scolaire-item-meta">${(item.meta && item.meta[1]) || ''}</div>`}
+      </div>
+    `).join('');
+  }
+
+  // Update statusbar
+  const countEl = document.getElementById('scolariteCount');
+  const locEl = document.getElementById('scolariteLocation');
+  if (countEl) countEl.textContent = `${items.length} élément${items.length !== 1 ? 's' : ''}`;
+  if (locEl) locEl.textContent = node.name;
+
+  // Close detail panel
+  const detail = document.getElementById('scolariteDetail');
+  if (detail) detail.classList.remove('open');
+}
+
+function onScolariteItemClick(itemId) {
+  const item = findNode(scolariteData, itemId);
+  if (!item) return;
+
+  // Visual selection
+  document.querySelectorAll('.scolaire-item').forEach(i => i.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  if (item.type === 'file') {
+    // Show detail panel
+    const detail = document.getElementById('scolariteDetail');
+    detail.classList.add('open');
+    document.getElementById('scoDetailIcon').textContent = item.icon;
+    document.getElementById('scoDetailTitle').textContent = item.name;
+    document.getElementById('scoDetailMeta').innerHTML = (item.meta || []).map(m => `<span>${m}</span>`).join('');
+    document.getElementById('scoDetailDesc').textContent = item.desc || '';
+    document.getElementById('scoDetailTags').innerHTML = (item.tags || []).map(t => `<span class="scolaire-detail-tag">${t}</span>`).join('');
+  }
+}
+
+function onScolariteItemDblClick(itemId) {
+  const item = findNode(scolariteData, itemId);
+  if (!item) return;
+  if (item.type === 'folder') {
+    // Navigate into folder
+    navigateScolarite(itemId);
+    // Also expand tree node
+    const childrenEl = document.getElementById('tree-children-' + itemId);
+    const chevron = document.getElementById('chevron-' + itemId);
+    if (childrenEl) childrenEl.classList.add('open');
+    if (chevron) chevron.classList.add('open');
+  }
 }
 
 // ============================
@@ -3396,6 +3917,7 @@ function openWindow(id) {
   if (id === 'accueil') initTypingEffect();
   if (id === 'terminal') initTerminal();
   if (id === 'projets') initProjets();
+  if (id === 'scolarite') initScolarite();
 
   // Click to focus
   win.addEventListener('mousedown', () => focusWindow(id));
@@ -3469,6 +3991,7 @@ function updateTaskbar() {
         'À Propos': 'apropos',
         'Réalisations': 'realisations',
         'Projets': 'projets',
+        'Scolarité': 'scolarite',
         'Contact': 'contact',
         'Terminal': 'terminal',
       'CV': 'cv'
@@ -3809,7 +4332,7 @@ function processCommand(cmd) {
   // Handle 'open <window>' command
   else if (cmd.startsWith('open ')) {
     const target = cmd.split(' ')[1];
-    const validWindows = ['accueil', 'apropos', 'realisations', 'projets', 'contact', 'terminal'];
+    const validWindows = ['accueil', 'apropos', 'realisations', 'projets', 'scolarite', 'contact', 'terminal'];
     if (validWindows.includes(target)) {
       output.innerHTML += `<div class="t-result">Ouverture de ${target}...</div>`;
       setTimeout(() => openWindow(target), 300);
