@@ -1041,6 +1041,105 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   color: var(--text-muted);
 }
 
+/* Bouton Ouvrir dans le détail */
+.scolaire-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 0.8rem;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.scolaire-open-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+}
+
+/* Document viewer (iframe PDF) */
+.doc-viewer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 8px;
+}
+.doc-viewer-title {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.doc-viewer-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.doc-viewer-btn {
+  padding: 5px 14px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.doc-viewer-btn:hover { background: rgba(255,255,255,0.1); }
+.doc-viewer-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  color: var(--bg-dark);
+  border: none;
+  font-weight: 600;
+}
+.doc-viewer-btn.primary:hover {
+  box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+}
+.doc-viewer-frame {
+  flex: 1;
+  border: none;
+  background: rgba(0,0,0,0.1);
+  min-height: 0;
+}
+.doc-viewer-fallback {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.doc-viewer-fallback-icon { font-size: 3.5rem; opacity: 0.5; }
+.doc-viewer-fallback-title { font-size: 1rem; color: var(--text-bright); font-weight: 600; }
+.doc-viewer-fallback-text { font-size: 0.82rem; line-height: 1.5; max-width: 350px; }
+
 /* ============================================
    WINDOW: CONTACT (Outlook-style Mail App)
    ============================================ */
@@ -2741,6 +2840,7 @@ function getWindowContent(id) {
                 <div class="scolaire-detail-meta" id="scoDetailMeta"><span>—</span></div>
                 <div class="scolaire-detail-desc" id="scoDetailDesc">Cliquez sur un fichier pour voir ses détails.</div>
                 <div class="scolaire-detail-tags" id="scoDetailTags"></div>
+                <button class="scolaire-open-btn" id="scoOpenBtn" style="display:none;" onclick="openCurrentScolariteFile()">📄 Ouvrir le document</button>
               </div>
             </div>
             <div class="scolaire-statusbar">
@@ -3094,6 +3194,7 @@ const scolariteData = {
           name: 'TP_Réseau_Cisco.pkt',
           icon: '🌐',
           type: 'file',
+          fileUrl: 'docs/TP_Reseau_Cisco.pdf',
           meta: ['Type : Packet Tracer', 'Taille : 2.4 Mo', 'Date : Sept 2024', 'Contexte : TP école'],
           desc: 'Configuration de routeurs et switchs Cisco : VLAN, routage inter-VLAN, ACL, NAT/PAT sur Packet Tracer.',
           tags: ['Cisco', 'VLAN', 'Routage', 'Packet Tracer']
@@ -3103,6 +3204,7 @@ const scolariteData = {
           name: 'Admin_Linux.sh',
           icon: '🐧',
           type: 'file',
+          fileUrl: 'docs/Admin_Linux.pdf',
           meta: ['Type : Script Bash', 'Taille : 18 Ko', 'Date : Oct 2024', 'Contexte : TP école'],
           desc: 'Administration de serveurs Debian : gestion des services Apache, Bind9, DHCP, scripting Bash et permissions.',
           tags: ['Debian', 'Bash', 'Apache', 'Services']
@@ -3112,6 +3214,7 @@ const scolariteData = {
           name: 'Windows_Server.docx',
           icon: '🪟',
           type: 'file',
+          fileUrl: 'docs/Windows_Server.pdf',
           meta: ['Type : Document', 'Taille : 5.1 Mo', 'Date : Nov 2024', 'Contexte : TP école'],
           desc: 'Déploiement Windows Server : installation AD DS, DNS, DHCP, création d\'OU et stratégies GPO.',
           tags: ['Windows Server', 'AD DS', 'GPO', 'DNS']
@@ -3121,6 +3224,7 @@ const scolariteData = {
           name: 'Base_Données.sql',
           icon: '💾',
           type: 'file',
+          fileUrl: 'docs/Base_Donnees.pdf',
           meta: ['Type : Script SQL', 'Taille : 42 Ko', 'Date : Déc 2024', 'Contexte : Cours'],
           desc: 'Conception et manipulation de bases de données relationnelles : MCD/MLD, requêtes SQL, jointures, vues.',
           tags: ['MySQL', 'SQL', 'MCD', 'PhpMyAdmin']
@@ -3130,6 +3234,7 @@ const scolariteData = {
           name: 'Projet_Python.py',
           icon: '🐍',
           type: 'file',
+          fileUrl: 'docs/Projet_Python.pdf',
           meta: ['Type : Script Python', 'Taille : 8 Ko', 'Date : Jan 2025', 'Contexte : TP école'],
           desc: 'Programmation Python : algorithmique, structures de données, scripts d\'automatisation réseau.',
           tags: ['Python 3', 'Algorithmique', 'Scripting']
@@ -3147,6 +3252,7 @@ const scolariteData = {
           name: 'Audit_Sécurité.pdf',
           icon: '🛡️',
           type: 'file',
+          fileUrl: 'docs/Audit_Securite.pdf',
           meta: ['Type : Rapport PDF', 'Taille : 3.8 Mo', 'Date : Sept 2025', 'Contexte : TP école'],
           desc: 'Module cybersécurité : scan de ports Nmap, analyse de trames Wireshark, identification de vulnérabilités.',
           tags: ['Nmap', 'Wireshark', 'Sécurité', 'Audit']
@@ -3156,6 +3262,7 @@ const scolariteData = {
           name: 'GLPI_Config.conf',
           icon: '🔧',
           type: 'file',
+          fileUrl: 'docs/GLPI_Config.pdf',
           meta: ['Type : Configuration', 'Taille : 12 Ko', 'Date : Oct 2025', 'Contexte : Entreprise'],
           desc: 'Déploiement GLPI : inventaire FusionInventory, gestion de tickets helpdesk, reporting.',
           tags: ['GLPI', 'FusionInventory', 'Helpdesk', 'ITIL']
@@ -3165,6 +3272,7 @@ const scolariteData = {
           name: 'Infra_Virtuelle.vmx',
           icon: '☁️',
           type: 'file',
+          fileUrl: 'docs/Infra_Virtuelle.pdf',
           meta: ['Type : Config VMware', 'Taille : 4 Ko', 'Date : Nov 2025', 'Contexte : TP école'],
           desc: 'Virtualisation avec VMware et Hyper-V : création de VMs, snapshots, migration, réseau virtuel.',
           tags: ['VMware', 'Hyper-V', 'VirtualBox', 'ESXi']
@@ -3174,6 +3282,7 @@ const scolariteData = {
           name: 'Portfolio.html',
           icon: '💻',
           type: 'file',
+          fileUrl: 'docs/Portfolio.pdf',
           meta: ['Type : Page Web', 'Taille : 156 Ko', 'Date : Fév 2026', 'Contexte : Personnel'],
           desc: 'Création de ce portfolio interactif simulant un OS : HTML, CSS, JavaScript vanilla.',
           tags: ['HTML5', 'CSS3', 'JavaScript', 'Portfolio']
@@ -3324,6 +3433,16 @@ function onScolariteItemClick(itemId) {
     document.getElementById('scoDetailMeta').innerHTML = (item.meta || []).map(m => `<span>${m}</span>`).join('');
     document.getElementById('scoDetailDesc').textContent = item.desc || '';
     document.getElementById('scoDetailTags').innerHTML = (item.tags || []).map(t => `<span class="scolaire-detail-tag">${t}</span>`).join('');
+    // Show/hide open button
+    const openBtn = document.getElementById('scoOpenBtn');
+    if (openBtn) {
+      if (item.fileUrl) {
+        openBtn.style.display = '';
+        openBtn.dataset.fileId = item.id;
+      } else {
+        openBtn.style.display = 'none';
+      }
+    }
   }
 }
 
@@ -3338,7 +3457,89 @@ function onScolariteItemDblClick(itemId) {
     const chevron = document.getElementById('chevron-' + itemId);
     if (childrenEl) childrenEl.classList.add('open');
     if (chevron) chevron.classList.add('open');
+  } else if (item.type === 'file' && item.fileUrl) {
+    openDocumentViewer(item);
   }
+}
+
+function openCurrentScolariteFile() {
+  const btn = document.getElementById('scoOpenBtn');
+  if (!btn || !btn.dataset.fileId) return;
+  const item = findNode(scolariteData, btn.dataset.fileId);
+  if (item && item.fileUrl) openDocumentViewer(item);
+}
+
+let docViewerCounter = 0;
+
+function openDocumentViewer(fileItem) {
+  docViewerCounter++;
+  const winId = 'docview-' + docViewerCounter;
+  const fileName = fileItem.name;
+  const fileUrl = fileItem.fileUrl;
+  const icon = fileItem.icon || '📄';
+
+  const win = document.createElement('div');
+  win.className = 'os-window focused';
+  win.id = 'window-' + winId;
+  win.dataset.windowId = winId;
+  win.style.width = '850px';
+  win.style.height = '620px';
+
+  const offset = Object.keys(state.windows).length * 30;
+  win.style.left = Math.max(60, (window.innerWidth - 850) / 2 + offset) + 'px';
+  win.style.top = Math.max(30, (window.innerHeight - 620 - 52) / 2 + offset) + 'px';
+  win.style.zIndex = ++state.zCounter;
+
+  win.innerHTML = `
+    <div class="window-titlebar" data-drag="true">
+      <span class="window-titlebar-icon">${icon}</span>
+      <span class="window-titlebar-text">${fileName} — Lecteur PDF</span>
+      <div class="window-controls">
+        <button class="window-ctrl-btn minimize-btn" onclick="minimizeWindow('${winId}')" title="Réduire">─</button>
+        <button class="window-ctrl-btn maximize-btn" onclick="maximizeWindow('${winId}')" title="Agrandir">□</button>
+        <button class="window-ctrl-btn close-btn" onclick="closeWindow('${winId}')" title="Fermer">✕</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="doc-viewer">
+        <div class="doc-viewer-toolbar">
+          <span class="doc-viewer-title">${icon} ${fileName}</span>
+          <div class="doc-viewer-actions">
+            <button class="doc-viewer-btn" onclick="window.open('${fileUrl}', '_blank')">🔗 Nouvel onglet</button>
+            <button class="doc-viewer-btn primary" onclick="downloadDoc('${fileUrl}', '${fileName}')">⬇️ Télécharger</button>
+          </div>
+        </div>
+        <iframe class="doc-viewer-frame" src="${fileUrl}" title="${fileName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"></iframe>
+        <div class="doc-viewer-fallback" style="display:none;">
+          <div class="doc-viewer-fallback-icon">📄</div>
+          <div class="doc-viewer-fallback-title">${fileName}</div>
+          <div class="doc-viewer-fallback-text">Le fichier PDF n'a pas pu être chargé.<br>Vérifiez que le fichier existe dans le dossier <strong>docs/</strong></div>
+          <button class="doc-viewer-btn primary" onclick="window.open('${fileUrl}', '_blank')" style="margin-top:0.5rem;">🔗 Ouvrir dans un nouvel onglet</button>
+        </div>
+      </div>
+    </div>
+    <div class="resize-handle" data-resize="true"></div>
+  `;
+
+  document.getElementById('desktop').appendChild(win);
+  state.windows[winId] = win;
+  state.windowOrder.push(winId);
+  focusWindow(winId);
+  updateTaskbar();
+  initDrag(win, winId);
+  if (!isMobile()) initResize(win);
+  win.addEventListener('mousedown', () => focusWindow(winId));
+}
+
+function downloadDoc(url, name) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name.replace(/\.[^.]+$/, '') + '.pdf';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showNotification('📄 Téléchargement', `Téléchargement de ${name}...`);
 }
 
 // ============================
