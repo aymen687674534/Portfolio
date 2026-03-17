@@ -281,12 +281,11 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
    ============================================ */
 .desktop-icons {
   position:absolute;
-  top: 20px; left: 20px;
-  display: flex; flex-direction: column;
-  gap: 8px;
+  inset: 10px 10px calc(var(--taskbar-h) + 10px) 10px;
   z-index: 10;
 }
 .desktop-icon {
+  position:absolute;
   display:flex; flex-direction:column;
   align-items:center; gap:6px;
   padding: 10px 8px;
@@ -294,8 +293,14 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   cursor:pointer;
   width: 90px;
   text-align:center;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
   border: 1px solid transparent;
+  user-select:none;
+}
+.desktop-icon.dragging {
+  opacity:0.7;
+  z-index:100;
+  transition: none;
 }
 .desktop-icon:hover {
   background: rgba(255,255,255,0.08);
@@ -391,6 +396,34 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   display:flex; align-items:center; gap:6px;
   padding: 0 6px;
   font-size:0.85rem;
+}
+
+#resetLayoutBtn {
+  position: fixed;
+  right: 12px;
+  bottom: calc(var(--taskbar-h) + 10px);
+  z-index: 9501;
+  border: 1px solid var(--border);
+  background: var(--bg-taskbar);
+  color: var(--text);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  user-select: none;
+  backdrop-filter: blur(20px);
+  transition: background 0.2s, border-color 0.2s;
+}
+#resetLayoutBtn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
 }
 
 /* ============================================
@@ -1125,6 +1158,26 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   background: rgba(0,0,0,0.1);
   min-height: 0;
 }
+.odt-preview-frame {
+  overflow: auto;
+  padding: 18px;
+}
+.odt-preview-loading,
+.odt-preview-error {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+.odt-preview-doc {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.odt-preview-doc p {
+  margin: 0 0 0.85rem 0;
+}
 .doc-viewer-fallback {
   flex: 1;
   display: flex;
@@ -1558,6 +1611,197 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
 .projet-card-status.progress { background: var(--accent-yellow); }
 .projet-card-status.planned { background: var(--text-muted); }
 
+/* Competences E4 badges */
+.projet-card-competences {
+  display:flex; flex-wrap:wrap; gap:4px;
+  margin-bottom:6px;
+}
+.projet-card-comp {
+  font-size:0.62rem;
+  padding: 2px 8px;
+  border-radius:10px;
+  background: rgba(255,152,0,0.15);
+  color: var(--accent-orange);
+  font-weight:600;
+  cursor:help;
+  border: 1px solid rgba(255,152,0,0.2);
+}
+
+/* ============================================
+   WINDOW: TABLEAU DE SYNTHÈSE E4
+   ============================================ */
+.synthese-container {
+  height:100%; display:flex; flex-direction:column; overflow:hidden;
+}
+.synthese-header {
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.synthese-header h2 {
+  font-size:0.95rem; font-weight:600; color: var(--text-bright);
+}
+.synthese-header-subtitle {
+  font-size:0.72rem; color: var(--text-muted);
+}
+.synthese-body {
+  flex:1; overflow-y:auto; padding:0;
+}
+.synthese-table {
+  width:100%; border-collapse:collapse; font-size:0.75rem;
+}
+.synthese-table th {
+  text-align:left; padding:8px 10px;
+  background: var(--bg-window);
+  color: var(--primary); font-weight:600;
+  border-bottom: 2px solid rgba(0,212,255,0.2);
+  position:sticky; top:0;
+  z-index:2;
+}
+.synthese-table td {
+  padding:8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align:top;
+}
+.synthese-table tr:hover td {
+  background: rgba(255,255,255,0.03);
+}
+.synthese-comp-badge {
+  display:inline-block;
+  font-size:0.62rem; padding:1px 6px;
+  border-radius:8px;
+  background: rgba(255,152,0,0.15);
+  color: var(--accent-orange);
+  font-weight:600; margin:1px 2px;
+}
+.synthese-status-dot {
+  display:inline-block; width:8px; height:8px;
+  border-radius:50%; margin-right:4px;
+}
+.synthese-legend {
+  padding:10px 18px;
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+  display:flex; gap:16px; flex-wrap:wrap;
+  font-size:0.7rem; color: var(--text-muted);
+}
+.synthese-legend-item {
+  display:flex; align-items:center; gap:4px;
+}
+
+/* ============================================
+   WINDOW: VEILLE TECHNOLOGIQUE
+   ============================================ */
+.veille-container {
+  height:100%; display:flex; flex-direction:column; overflow:hidden;
+}
+.veille-header {
+  padding:14px 18px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+}
+.veille-header h2 {
+  font-size:0.95rem; font-weight:600; color: var(--text-bright);
+  margin-bottom:4px;
+}
+.veille-header p {
+  font-size:0.75rem; color: var(--text-muted);
+}
+.veille-body {
+  flex:1; overflow-y:auto; padding:1rem;
+  display:flex; flex-direction:column; gap:1rem;
+}
+.veille-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding:14px;
+}
+.veille-section-title {
+  font-size:0.85rem; font-weight:600; color: var(--primary);
+  margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.veille-item {
+  font-size:0.78rem; color: var(--text); line-height:1.7;
+  padding-left:12px;
+  border-left: 2px solid rgba(0,212,255,0.2);
+  margin-bottom:6px;
+}
+.veille-item strong { color: var(--text-bright); }
+.veille-item a {
+  color: var(--primary); text-decoration:none;
+}
+.veille-item a:hover { text-decoration:underline; }
+.veille-tags {
+  display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;
+}
+.veille-tag {
+  font-size:0.65rem; padding:3px 10px;
+  border-radius:10px;
+  background: rgba(0,212,255,0.1);
+  color: var(--primary);
+}
+
+/* ============================================
+   WINDOW: ATTESTATIONS
+   ============================================ */
+.attestations-container {
+  height:100%; display:flex; flex-direction:column; overflow:hidden;
+}
+.attestations-header {
+  padding:14px 18px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+}
+.attestations-header h2 {
+  font-size:0.95rem; font-weight:600; color: var(--text-bright);
+  margin-bottom:4px;
+}
+.attestations-header p {
+  font-size:0.75rem; color: var(--text-muted);
+}
+.attestations-body {
+  flex:1; overflow-y:auto; padding:1rem;
+  display:flex; flex-direction:column; gap:1rem;
+}
+.attestation-card {
+  display:flex; align-items:center; gap:14px;
+  padding:14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, background 0.2s;
+}
+.attestation-card:hover {
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+}
+.attestation-icon {
+  font-size:2rem; flex-shrink:0;
+}
+.attestation-info { flex:1; }
+.attestation-title {
+  font-size:0.85rem; font-weight:600; color: var(--text-bright);
+  margin-bottom:2px;
+}
+.attestation-desc {
+  font-size:0.75rem; color: var(--text-muted); line-height:1.5;
+}
+.attestation-btn {
+  padding:6px 16px;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  color: var(--bg-dark); border:none; border-radius:20px;
+  font-weight:600; font-size:0.75rem; cursor:pointer;
+  font-family: var(--font); transition: transform 0.2s, box-shadow 0.2s;
+  white-space:nowrap;
+}
+.attestation-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+}
+
 .projets-legend {
   display:flex; gap:16px;
   padding: 8px 14px;
@@ -1640,55 +1884,155 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
 }
 
 /* ============================================
-   GLITCH / AUTODESTRUCTION
+   GLITCH / AUTODESTRUCTION (INSANE MODE)
    ============================================ */
-.glitch-overlay {
+
+/* --- Base overlay --- */
+.sd-overlay {
   position:fixed; inset:0;
   z-index: var(--z-glitch);
   pointer-events:none;
   opacity:0;
   transition: opacity 0.3s;
 }
-.glitch-overlay.active {
-  opacity:1;
-  animation: glitchFlicker 0.15s infinite;
-}
-@keyframes glitchFlicker {
-  0% { background: transparent; }
-  20% { background: rgba(255,0,0,0.08); }
-  40% { background: rgba(0,255,0,0.05); }
-  60% { background: rgba(0,0,255,0.08); }
-  80% { background: rgba(255,0,0,0.05); }
-  100% { background: transparent; }
-}
+.sd-overlay.active { opacity:1; pointer-events:all; }
 
-.glitch-text {
-  position:fixed;
-  top:50%; left:50%;
-  transform: translate(-50%,-50%);
+/* --- Warning countdown --- */
+.sd-warning {
+  position:fixed; inset:0;
   z-index: var(--z-glitch-text);
-  font-family: var(--font-mono);
-  font-size: clamp(1.5rem, 4vw, 3rem);
-  font-weight:700;
-  color: var(--accent-red);
-  text-shadow:
-    2px 0 var(--primary),
-    -2px 0 var(--accent-green);
   display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.92);
+  font-family: var(--font-mono);
+  color: #ff1744;
   text-align:center;
-  line-height:1.4;
-  animation: glitchText 0.3s infinite;
 }
-.glitch-text.active { display:block; }
-@keyframes glitchText {
-  0% { transform: translate(-50%,-50%) skew(0); }
-  20% { transform: translate(-52%,-48%) skew(2deg); }
-  40% { transform: translate(-48%,-52%) skew(-1deg); }
-  60% { transform: translate(-51%,-49%) skew(1deg); }
-  80% { transform: translate(-49%,-51%) skew(-2deg); }
-  100% { transform: translate(-50%,-50%) skew(0); }
+.sd-warning.active { display:flex; }
+.sd-warning-icon {
+  font-size: clamp(4rem,10vw,8rem);
+  animation: sdPulseWarn 0.5s ease-in-out infinite alternate;
+}
+.sd-warning-title {
+  font-size: clamp(1.5rem,4vw,3rem);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:6px;
+  margin-top:20px;
+  text-shadow: 0 0 20px #ff1744, 0 0 60px #ff1744;
+}
+.sd-warning-sub {
+  font-size: clamp(0.8rem,2vw,1.2rem);
+  color: #ff8a80;
+  margin-top:8px;
+  opacity:0.8;
+}
+.sd-countdown {
+  font-size: clamp(5rem,15vw,12rem);
+  font-weight:900;
+  color:#fff;
+  text-shadow: 0 0 40px #ff1744, 0 0 80px #ff5252, 0 0 120px #ff1744;
+  margin-top:20px;
+  animation: sdCountPulse 1s ease-in-out infinite;
+}
+.sd-progress-bar {
+  width:300px; max-width:80vw;
+  height:4px;
+  background: rgba(255,255,255,0.1);
+  border-radius:2px;
+  margin-top:30px;
+  overflow:hidden;
+}
+.sd-progress-fill {
+  height:100%;
+  background: linear-gradient(90deg, #ff1744, #ff9100, #ff1744);
+  background-size: 200% 100%;
+  animation: sdProgressShimmer 1s linear infinite;
+  transition: width 1s linear;
+  width:0%;
+}
+@keyframes sdPulseWarn {
+  from { transform:scale(1); filter:brightness(1); }
+  to { transform:scale(1.15); filter:brightness(1.4); }
+}
+@keyframes sdCountPulse {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.08); }
+}
+@keyframes sdProgressShimmer {
+  0% { background-position:200% 0; }
+  100% { background-position:-200% 0; }
 }
 
+/* --- Glitch Phase --- */
+.sd-glitch-layer {
+  position:fixed; inset:0;
+  z-index: var(--z-glitch);
+  pointer-events:none;
+  display:none;
+}
+.sd-glitch-layer.active { display:block; }
+
+.sd-scanlines {
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.15) 2px,
+    rgba(0,0,0,0.15) 4px
+  );
+  z-index: var(--z-glitch);
+  pointer-events:none;
+  animation: sdScanMove 0.1s linear infinite;
+}
+@keyframes sdScanMove {
+  from { transform:translateY(0); }
+  to { transform:translateY(4px); }
+}
+
+.sd-rgb-split {
+  position:fixed; inset:0;
+  z-index: var(--z-glitch);
+  pointer-events:none;
+  mix-blend-mode: screen;
+}
+.sd-rgb-split::before,
+.sd-rgb-split::after {
+  content:'';
+  position:absolute; inset:0;
+  background:inherit;
+}
+
+.sd-screen-tear {
+  position:fixed;
+  left:0; right:0;
+  height:3px;
+  z-index: var(--z-glitch-text);
+  pointer-events:none;
+  animation: sdTearMove 0.1s linear infinite;
+}
+@keyframes sdTearMove {
+  0% { top:0; background:rgba(255,0,0,0.5); }
+  25% { top:33%; background:rgba(0,255,0,0.5); }
+  50% { top:66%; background:rgba(0,0,255,0.5); }
+  75% { top:50%; background:rgba(255,255,0,0.5); }
+  100% { top:100%; background:rgba(255,0,255,0.5); }
+}
+
+/* --- Matrix Rain --- */
+.sd-matrix-canvas {
+  position:fixed; inset:0;
+  z-index: var(--z-fire);
+  pointer-events:none;
+  opacity:0;
+  transition: opacity 0.5s;
+}
+.sd-matrix-canvas.active { opacity:0.7; }
+
+/* --- Fire Particles --- */
 .fire-particles {
   position:fixed; inset:0;
   z-index: var(--z-fire);
@@ -1704,6 +2048,189 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
 @keyframes fireRise {
   0% { opacity:1; transform: translateY(0) scale(1); }
   100% { opacity:0; transform: translateY(-200px) scale(0); }
+}
+
+/* --- Black Hole --- */
+.sd-blackhole {
+  position:fixed;
+  top:50%; left:50%;
+  width:0; height:0;
+  border-radius:50%;
+  z-index: var(--z-glitch-text);
+  pointer-events:none;
+  transform: translate(-50%,-50%);
+  background: radial-gradient(circle, #000 40%, transparent 70%);
+  box-shadow: 0 0 0 0 rgba(0,0,0,0.8),
+              inset 0 0 60px 20px rgba(100,0,255,0.3);
+  transition: width 2s cubic-bezier(0.4,0,0.2,1),
+              height 2s cubic-bezier(0.4,0,0.2,1),
+              box-shadow 2s ease;
+}
+.sd-blackhole.active {
+  width:200vmax; height:200vmax;
+  box-shadow: 0 0 200px 100px rgba(100,0,255,0.4),
+              inset 0 0 120px 60px rgba(100,0,255,0.5);
+}
+.sd-blackhole-ring {
+  position:fixed;
+  top:50%; left:50%;
+  width:120px; height:120px;
+  border-radius:50%;
+  border:3px solid rgba(180,100,255,0.6);
+  z-index: var(--z-glitch-text);
+  pointer-events:none;
+  transform: translate(-50%,-50%) rotate(0deg);
+  opacity:0;
+  transition: opacity 0.5s;
+}
+.sd-blackhole-ring.active {
+  opacity:1;
+  animation: sdRingSpin 1s linear infinite, sdRingPulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes sdRingSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes sdRingPulse {
+  from { width:120px; height:120px; border-color:rgba(180,100,255,0.6); }
+  to { width:160px; height:160px; border-color:rgba(255,100,200,0.8); }
+}
+
+/* --- BSOD --- */
+.sd-bsod {
+  position:fixed; inset:0;
+  z-index: 1000000;
+  background: #0078d7;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  padding: 10% 12%;
+}
+.sd-bsod.active { display:flex; }
+.sd-bsod-sad { font-size: clamp(5rem,12vw,10rem); margin-bottom:20px; }
+.sd-bsod-title { font-size: clamp(1.2rem,3vw,2rem); margin-bottom:30px; }
+.sd-bsod-text { font-size: clamp(0.7rem,1.5vw,0.95rem); line-height:1.8; color:rgba(255,255,255,0.85); }
+.sd-bsod-percent {
+  font-size: clamp(1rem,2vw,1.4rem);
+  margin-top:30px;
+  color:rgba(255,255,255,0.9);
+}
+.sd-bsod-spinner {
+  width:24px; height:24px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:12px;
+  animation: sdBsodSpin 1s linear infinite;
+}
+@keyframes sdBsodSpin { to { transform:rotate(360deg); } }
+
+/* --- Reboot Terminal --- */
+.sd-reboot {
+  position:fixed; inset:0;
+  z-index: 1000000;
+  background: #000;
+  color: #00ff41;
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem,1.5vw,1rem);
+  padding:40px;
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+  line-height:1.6;
+}
+.sd-reboot.active { display:flex; }
+.sd-reboot-cursor {
+  display:inline-block;
+  width:8px; height:1.1em;
+  background:#00ff41;
+  animation: sdBlink 0.5s step-end infinite;
+  vertical-align:text-bottom;
+  margin-left:2px;
+}
+@keyframes sdBlink { 50% { opacity:0; } }
+
+/* --- Nuclear Flash --- */
+.sd-flash {
+  position:fixed; inset:0;
+  z-index:1000001;
+  background:#fff;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity 0.08s;
+}
+.sd-flash.active { opacity:1; }
+.sd-flash.fade { transition: opacity 1.5s ease-out; opacity:0; }
+
+/* --- Shake body --- */
+@keyframes sdShake {
+  0% { transform: translate(0,0) rotate(0); }
+  10% { transform: translate(-5px,3px) rotate(-0.5deg); }
+  20% { transform: translate(5px,-3px) rotate(0.5deg); }
+  30% { transform: translate(-7px,1px) rotate(-1deg); }
+  40% { transform: translate(7px,-1px) rotate(1deg); }
+  50% { transform: translate(-3px,5px) rotate(-0.5deg); }
+  60% { transform: translate(3px,-5px) rotate(0.5deg); }
+  70% { transform: translate(-8px,2px) rotate(-1.5deg); }
+  80% { transform: translate(8px,-2px) rotate(1.5deg); }
+  90% { transform: translate(-4px,4px) rotate(-0.5deg); }
+  100% { transform: translate(0,0) rotate(0); }
+}
+.sd-shaking { animation: sdShake 0.08s linear infinite !important; }
+.sd-shaking-hard { animation: sdShake 0.04s linear infinite !important; }
+
+/* --- Glitch text overlay --- */
+.sd-glitch-text {
+  position:fixed;
+  top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  z-index: var(--z-glitch-text);
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 5vw, 4rem);
+  font-weight:900;
+  color:#fff;
+  text-shadow: 3px 0 #ff0040, -3px 0 #00ff88, 0 3px #4040ff;
+  text-align:center;
+  line-height:1.4;
+  display:none;
+  letter-spacing:4px;
+  text-transform:uppercase;
+}
+.sd-glitch-text.active {
+  display:block;
+  animation: sdGlitchText 0.15s steps(2) infinite;
+}
+@keyframes sdGlitchText {
+  0% { transform: translate(-50%,-50%) skew(0deg); clip-path:inset(0 0 0 0); }
+  25% { transform: translate(-52%,-48%) skew(4deg); clip-path:inset(20% 0 30% 0); }
+  50% { transform: translate(-48%,-53%) skew(-3deg); clip-path:inset(40% 0 10% 0); }
+  75% { transform: translate(-51%,-47%) skew(2deg); clip-path:inset(10% 0 40% 0); }
+  100% { transform: translate(-50%,-50%) skew(0deg); clip-path:inset(0 0 0 0); }
+}
+
+/* --- Suck-in effect for elements --- */
+.sd-sucking {
+  transition: transform 1.5s cubic-bezier(0.6,0,1,1), opacity 1.5s ease-in !important;
+  transform-origin: center center;
+}
+.sd-sucked {
+  transform: scale(0) rotate(720deg) !important;
+  opacity:0 !important;
+}
+
+/* --- Corruption bars --- */
+.sd-corrupt-bar {
+  position:fixed;
+  left:0;
+  z-index: var(--z-glitch-text);
+  height:3px;
+  pointer-events:none;
+  animation: sdCorruptSlide 0.2s linear infinite alternate;
+}
+@keyframes sdCorruptSlide {
+  from { transform:translateX(-10%); }
+  to { transform:translateX(10%); }
 }
 
 /* ============================================
@@ -1967,9 +2494,7 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
 
   /* ── Desktop icons ── */
   .desktop-icons {
-    top:12px; left:8px; right:8px;
-    flex-direction:row; flex-wrap:wrap;
-    gap:4px;
+    inset:8px 8px calc(var(--taskbar-h) + 8px) 8px;
   }
   .desktop-icon {
     width:72px;
@@ -2236,6 +2761,18 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
       <div class="desktop-icon-img">📄</div>
       <div class="desktop-icon-label">CV.pdf</div>
     </div>
+    <div class="desktop-icon" data-window="synthese" ondblclick="openWindow('synthese')">
+      <div class="desktop-icon-img">📊</div>
+      <div class="desktop-icon-label">Synthèse E4</div>
+    </div>
+    <div class="desktop-icon" data-window="veille" ondblclick="openWindow('veille')">
+      <div class="desktop-icon-img">📡</div>
+      <div class="desktop-icon-label">Veille</div>
+    </div>
+    <div class="desktop-icon" data-window="attestations" ondblclick="openWindow('attestations')">
+      <div class="desktop-icon-img">📜</div>
+      <div class="desktop-icon-label">Attestations</div>
+    </div>
   </div>
 </div>
 
@@ -2253,6 +2790,9 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     <button class="taskbar-btn" onclick="openWindow('terminal')" title="Terminal">⬛</button>
     <button class="taskbar-btn" onclick="openWindow('scolarite')" title="Scolarité">🎓</button>
     <button class="taskbar-btn" onclick="openWindow('cv')" title="CV">📄</button>
+    <button class="taskbar-btn" onclick="openWindow('synthese')" title="Synthèse E4">📊</button>
+    <button class="taskbar-btn" onclick="openWindow('veille')" title="Veille">📡</button>
+    <button class="taskbar-btn" onclick="openWindow('attestations')" title="Attestations">📜</button>
     <button class="taskbar-btn" onclick="triggerSelfDestruct()" title="Autodestruction" style="color:var(--accent-red);">☢️</button>
   </div>
   <div class="taskbar-right">
@@ -2266,6 +2806,8 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     </div>
   </div>
 </div>
+
+<button id="resetLayoutBtn" ondblclick="resetPortfolioDefaultsAndReload()" title="Double-clic pour reset affichage">↺</button>
 
 <!-- ========== START MENU ========== -->
 <div id="startMenu">
@@ -2303,6 +2845,18 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
     <div class="start-app" onclick="openWindow('cv'); toggleStartMenu();">
       <div class="start-app-icon">📄</div>
       <div class="start-app-label">CV</div>
+    </div>
+    <div class="start-app" onclick="openWindow('synthese'); toggleStartMenu();">
+      <div class="start-app-icon">📊</div>
+      <div class="start-app-label">Synthèse E4</div>
+    </div>
+    <div class="start-app" onclick="openWindow('veille'); toggleStartMenu();">
+      <div class="start-app-icon">📡</div>
+      <div class="start-app-label">Veille</div>
+    </div>
+    <div class="start-app" onclick="openWindow('attestations'); toggleStartMenu();">
+      <div class="start-app-icon">📜</div>
+      <div class="start-app-label">Attestations</div>
     </div>
     <div class="start-app" onclick="triggerSelfDestruct(); toggleStartMenu();">
       <div class="start-app-icon">☢️</div>
@@ -2349,10 +2903,39 @@ button:focus-visible, input:focus-visible { outline-offset: 0; }
   <div class="context-menu-item" role="menuitem" onclick="location.reload()">🔄  Actualiser</div>
 </div>
 
-<!-- ========== GLITCH OVERLAY ========== -->
-<div class="glitch-overlay" id="glitchOverlay"></div>
-<div class="glitch-text" id="glitchText">⚠ SYSTEM FAILURE ⚠<br>AUTODESTRUCTION...</div>
+<!-- ========== SELF-DESTRUCT SYSTEM ========== -->
+<div class="sd-overlay" id="sdOverlay"></div>
+<div class="sd-warning" id="sdWarning">
+  <div class="sd-warning-icon">☢️</div>
+  <div class="sd-warning-title">⚠ AUTODESTRUCTION INITIÉE ⚠</div>
+  <div class="sd-warning-sub">PROTOCOLE NUCLEAR_PURGE.exe EN COURS...</div>
+  <div class="sd-countdown" id="sdCountdown">3</div>
+  <div class="sd-progress-bar"><div class="sd-progress-fill" id="sdProgress"></div></div>
+</div>
+<div class="sd-glitch-layer" id="sdGlitchLayer">
+  <div class="sd-scanlines"></div>
+  <div class="sd-screen-tear"></div>
+  <div class="sd-screen-tear" style="animation-delay:-0.05s"></div>
+  <div class="sd-screen-tear" style="animation-delay:-0.08s"></div>
+</div>
+<div class="sd-glitch-text" id="sdGlitchText">SYSTEM FAILURE</div>
+<canvas class="sd-matrix-canvas" id="sdMatrixCanvas"></canvas>
 <div class="fire-particles" id="fireParticles"></div>
+<div class="sd-blackhole-ring" id="sdBlackholeRing"></div>
+<div class="sd-blackhole" id="sdBlackhole"></div>
+<div class="sd-bsod" id="sdBsod">
+  <div class="sd-bsod-sad">:(</div>
+  <div class="sd-bsod-title">Your portfolio ran into a problem and needs to restart.</div>
+  <div class="sd-bsod-text">
+    We're just collecting some error info, and then we'll restart for you.<br><br>
+    If you'd like to know more, you can search later for this error:<br>
+    Stop code: PORTFOLIO_NUCLEAR_MELTDOWN<br>
+    What failed: aymen_portfolio.sys
+  </div>
+  <div class="sd-bsod-percent" id="sdBsodPercent"><span class="sd-bsod-spinner"></span>0% complete</div>
+</div>
+<div class="sd-reboot" id="sdReboot"><div id="sdRebootText"></div></div>
+<div class="sd-flash" id="sdFlash"></div>
 
 <!-- ========== NOTIFICATION ========== -->
 <div class="notification" id="notification" role="alert" onclick="this.classList.remove('show')">
@@ -2404,6 +2987,20 @@ function lsGet(key, fallback = null) {
 
 function lsSet(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+function resetPortfolioDefaultsAndReload() {
+  const keysToClear = [
+    LS_KEYS.WALLPAPER,
+    LS_KEYS.ACCENT,
+    LS_KEYS.SENT_EMAILS,
+    LS_KEYS.WINDOW_POSITIONS,
+    'desktopIconPositions'
+  ];
+  keysToClear.forEach(key => {
+    try { localStorage.removeItem(key); } catch {}
+  });
+  location.reload();
 }
 
 // ============================
@@ -2746,9 +3343,36 @@ function getWindowContent(id) {
               <div class="code-line">&nbsp;&nbsp;<span class="prop">objectif</span>: <span class="str">"Devenir Technicien de maintenance informatique"</span></div>
               <div class="code-line">};</div>
               <div class="code-line">&nbsp;</div>
+              <div class="code-line"><span class="cm">// ─── PARCOURS DE PROFESSIONNALISATION ───</span></div>
+              <div class="code-line">&nbsp;</div>
+              <div class="code-line"><span class="kw">const</span> <span class="prop">parcours</span> = [</div>
+              <div class="code-line">&nbsp;&nbsp;{</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">période</span>: <span class="str">"2024"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">étape</span>: <span class="str">"BTS SIO SISR — Année 1"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">détails</span>: <span class="str">"Réseau Cisco, Linux, Windows Server, SQL, Python"</span></div>
+              <div class="code-line">&nbsp;&nbsp;},</div>
+              <div class="code-line">&nbsp;&nbsp;{</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">période</span>: <span class="str">"2024-2025"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">étape</span>: <span class="str">"Alternance Konvergence"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">détails</span>: <span class="str">"GLPI, AD, VMware, Support N1/N2, Sécurité"</span></div>
+              <div class="code-line">&nbsp;&nbsp;},</div>
+              <div class="code-line">&nbsp;&nbsp;{</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">période</span>: <span class="str">"2025-2026"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">étape</span>: <span class="str">"BTS SIO SISR — Année 2"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">détails</span>: <span class="str">"Cybersécurité, Veille, Portfolio, Projet E5"</span></div>
+              <div class="code-line">&nbsp;&nbsp;},</div>
+              <div class="code-line">&nbsp;&nbsp;{</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">période</span>: <span class="str">"2026"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">étape</span>: <span class="str">"Préparation épreuves BTS"</span>,</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="prop">détails</span>: <span class="str">"E4 (Support & mise à dispo), E5 (Infrastructure)"</span></div>
+              <div class="code-line">&nbsp;&nbsp;}</div>
+              <div class="code-line">];</div>
+              <div class="code-line">&nbsp;</div>
               <div class="code-line"><span class="cm">// Actuellement en alternance, je conçois</span></div>
               <div class="code-line"><span class="cm">// et déploie des infrastructures réseau</span></div>
               <div class="code-line"><span class="cm">// tout en renforçant leur sécurité.</span></div>
+              <div class="code-line"><span class="cm">// Mon parcours couvre les 6 compétences</span></div>
+              <div class="code-line"><span class="cm">// du bloc E4 du BTS SIO.</span></div>
             </div>
           </div>
         </div>
@@ -2970,13 +3594,137 @@ function getWindowContent(id) {
       content: `
         <div class="doc-viewer">
           <div class="doc-viewer-toolbar">
-            <span class="doc-viewer-title">📄 CV_2026-02-18_Aymen_LOURAGHI.pdf</span>
+            <span class="doc-viewer-title">📄 CV_Aymen_LOURAGHI.pdf</span>
             <div class="doc-viewer-actions">
               <button class="doc-viewer-btn" onclick="window.open('CV_2026-02-18_Aymen_LOURAGHI.pdf', '_blank')">🔗 Nouvel onglet</button>
-              <button class="doc-viewer-btn primary" onclick="downloadCV()">⬇️ Télécharger le CV</button>
+              <button class="doc-viewer-btn primary" onclick="downloadCV()">⬇️ Télécharger</button>
             </div>
           </div>
-          <iframe class="doc-viewer-frame" src="CV_2026-02-18_Aymen_LOURAGHI.pdf" title="CV Aymen Louraghi"></iframe>
+          <iframe class="doc-viewer-frame" id="cvIframe" src="CV_2026-02-18_Aymen_LOURAGHI.pdf" title="CV Aymen Louraghi"></iframe>
+          <div class="doc-viewer-fallback" id="cvFallback" style="display:none;">
+            <div class="doc-viewer-fallback-icon">📄</div>
+            <div class="doc-viewer-fallback-title">CV_Aymen_LOURAGHI.pdf</div>
+            <div class="doc-viewer-fallback-text">Le fichier PDF n'a pas pu être affiché dans cette fenêtre.<br>Utilisez les boutons ci-dessus pour l'ouvrir ou le télécharger.</div>
+            <button class="doc-viewer-btn primary" onclick="window.open('CV_2026-02-18_Aymen_LOURAGHI.pdf', '_blank')" style="margin-top:0.5rem;">🔗 Ouvrir dans un nouvel onglet</button>
+          </div>
+        </div>
+      `
+    },
+    synthese: {
+      title: 'Tableau de synthèse — Épreuve E4',
+      icon: '📊',
+      width: 920, height: 600,
+      content: `
+        <div class="synthese-container">
+          <div class="synthese-header">
+            <div>
+              <h2>📊 Tableau de synthèse — Épreuve E4</h2>
+              <div class="synthese-header-subtitle">Bloc « Support et mise à disposition de services informatiques »</div>
+            </div>
+          </div>
+          <div class="synthese-body">
+            <table class="synthese-table" id="syntheseTable">
+              <thead>
+                <tr>
+                  <th>Réalisation</th>
+                  <th>Contexte</th>
+                  <th>Compétences E4</th>
+                  <th>Période</th>
+                  <th>État</th>
+                </tr>
+              </thead>
+              <tbody id="syntheseBody"></tbody>
+            </table>
+          </div>
+          <div class="synthese-legend">
+            <div class="synthese-legend-item"><span class="synthese-status-dot" style="background:var(--accent-green)"></span> Terminé</div>
+            <div class="synthese-legend-item"><span class="synthese-status-dot" style="background:var(--accent-yellow)"></span> En cours</div>
+            <div class="synthese-legend-item"><span class="synthese-status-dot" style="background:var(--text-muted)"></span> Planifié</div>
+            <div class="synthese-legend-item" style="margin-left:auto;">
+              <strong>C1</strong>=Patrimoine &nbsp;<strong>C2</strong>=Incidents &nbsp;<strong>C3</strong>=Présence en ligne &nbsp;<strong>C4</strong>=Mode projet &nbsp;<strong>C5</strong>=Mise à dispo &nbsp;<strong>C6</strong>=Dév. pro.
+            </div>
+          </div>
+        </div>
+      `
+    },
+    veille: {
+      title: 'Veille technologique — Développement professionnel',
+      icon: '📡',
+      width: 780, height: 560,
+      content: `
+        <div class="veille-container">
+          <div class="veille-header">
+            <h2>📡 Veille technologique & Développement professionnel</h2>
+            <p>Compétence E4-C6 : Organiser son développement professionnel</p>
+          </div>
+          <div class="veille-body">
+            <div class="veille-section">
+              <div class="veille-section-title">🔍 Outils de veille</div>
+              <div class="veille-item"><strong>Feedly</strong> — Agrégateur RSS pour centraliser les flux d'actualités tech, cybersécurité et réseau.</div>
+              <div class="veille-item"><strong>Reddit</strong> — Subreddits r/sysadmin, r/networking, r/cybersecurity pour les retours d'expérience de la communauté.</div>
+              <div class="veille-item"><strong>Twitter/X</strong> — Suivi de comptes spécialisés (CERT-FR, @TheHackersNews, etc.).</div>
+              <div class="veille-item"><strong>Newsletters</strong> — TLDR Sec, Bleeping Computer, The Register.</div>
+            </div>
+            <div class="veille-section">
+              <div class="veille-section-title">🎓 Autoformation & Certifications</div>
+              <div class="veille-item"><strong>HackTheBox</strong> — Plateforme de challenges de cybersécurité pour pratiquer le pentest et la forensics.</div>
+              <div class="veille-item"><strong>TryHackMe</strong> — Parcours guidés de sécurité offensive et défensive, du débutant à l'avancé.</div>
+              <div class="veille-item"><strong>Cisco Networking Academy</strong> — Modules complémentaires CCNA, cybersécurité.</div>
+              <div class="veille-item"><strong>Documentation officielle</strong> — Microsoft Learn (Windows Server, AD, PowerShell), documentation Debian/Ubuntu.</div>
+            </div>
+            <div class="veille-section">
+              <div class="veille-section-title">📰 Thèmes de veille suivis</div>
+              <div class="veille-tags">
+                <span class="veille-tag">Cybersécurité</span>
+                <span class="veille-tag">Ransomware</span>
+                <span class="veille-tag">Vulnérabilités CVE</span>
+                <span class="veille-tag">Zero Trust</span>
+                <span class="veille-tag">Cloud & Virtualisation</span>
+                <span class="veille-tag">Active Directory</span>
+                <span class="veille-tag">Réseau & SDN</span>
+                <span class="veille-tag">DevOps / IaC</span>
+                <span class="veille-tag">RGPD</span>
+                <span class="veille-tag">IA & Sécurité</span>
+              </div>
+            </div>
+            <div class="veille-section">
+              <div class="veille-section-title">📈 Progression & Objectifs</div>
+              <div class="veille-item"><strong>2024</strong> — Mise en place d'une routine de veille quotidienne (Feedly + Reddit).</div>
+              <div class="veille-item"><strong>2025</strong> — Pratique régulière sur HackTheBox et TryHackMe. Obtention de badges et montée en compétence en pentest.</div>
+              <div class="veille-item"><strong>2026</strong> — Approfondissement Active Directory avancé, préparation certifications (CCNA, CompTIA Security+).</div>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    attestations: {
+      title: 'Attestations & Certificats',
+      icon: '📜',
+      width: 700, height: 480,
+      content: `
+        <div class="attestations-container">
+          <div class="attestations-header">
+            <h2>📜 Attestations de stage & Certificats de travail</h2>
+            <p>Documents requis pour le dossier E4 du BTS SIO</p>
+          </div>
+          <div class="attestations-body">
+            <div class="attestation-card">
+              <div class="attestation-icon">🏢</div>
+              <div class="attestation-info">
+                <div class="attestation-title">Attestation d'alternance — Konvergence</div>
+                <div class="attestation-desc">Alternance en tant que technicien informatique chez Konvergence (2024-2026). Support, administration réseau & systèmes, gestion de parc, cybersécurité.</div>
+              </div>
+              <button class="attestation-btn" onclick="openDocViewer('docs/Attestation_Konvergence.pdf', '📜', 'Attestation_Konvergence.pdf')">📄 Ouvrir</button>
+            </div>
+            <div class="attestation-card">
+              <div class="attestation-icon">🎓</div>
+              <div class="attestation-info">
+                <div class="attestation-title">Attestation de scolarité — CFP Les Charmilles</div>
+                <div class="attestation-desc">BTS Services Informatiques aux Organisations, option SISR (Solutions d'Infrastructure, Systèmes et Réseaux) — 2024-2026.</div>
+              </div>
+              <button class="attestation-btn" onclick="openDocViewer('docs/Attestation_Scolarite.pdf', '📜', 'Attestation_Scolarite.pdf')">📄 Ouvrir</button>
+            </div>
+          </div>
         </div>
       `
     }
@@ -3062,108 +3810,90 @@ const scolariteData = {
   type: 'folder',
   children: [
     {
-      id: 'annee1',
-      name: 'Année 1 (2024-2025)',
+      id: 'annee12',
+      name: 'Année 1 et 2 (2024-2026)',
       icon: '📁',
       type: 'folder',
       children: [
         {
-          id: 'a1-cisco',
-          name: 'TP_Réseau_Cisco.pkt',
-          icon: '🌐',
+          id: 'a12-assistance-windows',
+          name: 'ASSISTANCE WINDOWS.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/TP_Reseau_Cisco.pdf',
-          meta: ['Type : Packet Tracer', 'Taille : 2.4 Mo', 'Date : Sept 2024', 'Contexte : TP école'],
-          desc: 'Configuration de routeurs et switchs Cisco : VLAN, routage inter-VLAN, ACL, NAT/PAT sur Packet Tracer.',
-          tags: ['Cisco', 'VLAN', 'Routage', 'Packet Tracer']
+          fileUrl: 'docs/scolarite/ASSISTANCE WINDOWS.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'Document de support et assistance Windows.',
+          tags: ['Windows', 'Assistance', 'ODT']
         },
         {
-          id: 'a1-linux',
-          name: 'Admin_Linux.sh',
-          icon: '🐧',
+          id: 'a12-tp-dhcp',
+          name: 'TP DHCP.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Admin_Linux.pdf',
-          meta: ['Type : Script Bash', 'Taille : 18 Ko', 'Date : Oct 2024', 'Contexte : TP école'],
-          desc: 'Administration de serveurs Debian : gestion des services Apache, Bind9, DHCP, scripting Bash et permissions.',
-          tags: ['Debian', 'Bash', 'Apache', 'Services']
+          fileUrl: 'docs/scolarite/TP DHCP.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP de configuration DHCP.',
+          tags: ['DHCP', 'Réseau', 'ODT']
         },
         {
-          id: 'a1-windows',
-          name: 'Windows_Server.docx',
-          icon: '🪟',
+          id: 'a12-tp-fog',
+          name: 'TP FOG.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Windows_Server.pdf',
-          meta: ['Type : Document', 'Taille : 5.1 Mo', 'Date : Nov 2024', 'Contexte : TP école'],
-          desc: 'Déploiement Windows Server : installation AD DS, DNS, DHCP, création d\'OU et stratégies GPO.',
-          tags: ['Windows Server', 'AD DS', 'GPO', 'DNS']
+          fileUrl: 'docs/scolarite/TP FOG.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP autour de FOG (déploiement/clonage).',
+          tags: ['FOG', 'Déploiement', 'ODT']
         },
         {
-          id: 'a1-sql',
-          name: 'Base_Données.sql',
-          icon: '💾',
+          id: 'a12-tp-glpi',
+          name: 'TP GLPI.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Base_Donnees.pdf',
-          meta: ['Type : Script SQL', 'Taille : 42 Ko', 'Date : Déc 2024', 'Contexte : Cours'],
-          desc: 'Conception et manipulation de bases de données relationnelles : MCD/MLD, requêtes SQL, jointures, vues.',
-          tags: ['MySQL', 'SQL', 'MCD', 'PhpMyAdmin']
+          fileUrl: 'docs/scolarite/TP GLPI.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP de mise en place et utilisation de GLPI.',
+          tags: ['GLPI', 'Support', 'ODT']
         },
         {
-          id: 'a1-python',
-          name: 'Projet_Python.py',
-          icon: '🐍',
+          id: 'a12-tp-lamp',
+          name: 'TP LAMP.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Projet_Python.pdf',
-          meta: ['Type : Script Python', 'Taille : 8 Ko', 'Date : Jan 2025', 'Contexte : TP école'],
-          desc: 'Programmation Python : algorithmique, structures de données, scripts d\'automatisation réseau.',
-          tags: ['Python 3', 'Algorithmique', 'Scripting']
-        }
-      ]
-    },
-    {
-      id: 'annee2',
-      name: 'Année 2 (2025-2026)',
-      icon: '📁',
-      type: 'folder',
-      children: [
-        {
-          id: 'a2-cybersec',
-          name: 'Audit_Sécurité.pdf',
-          icon: '🛡️',
-          type: 'file',
-          fileUrl: 'docs/Audit_Securite.pdf',
-          meta: ['Type : Rapport PDF', 'Taille : 3.8 Mo', 'Date : Sept 2025', 'Contexte : TP école'],
-          desc: 'Module cybersécurité : scan de ports Nmap, analyse de trames Wireshark, identification de vulnérabilités.',
-          tags: ['Nmap', 'Wireshark', 'Sécurité', 'Audit']
+          fileUrl: 'docs/scolarite/TP LAMP.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP de déploiement d\'une stack LAMP.',
+          tags: ['Linux', 'Apache', 'MySQL', 'PHP']
         },
         {
-          id: 'a2-glpi',
-          name: 'GLPI_Config.conf',
-          icon: '🔧',
+          id: 'a12-tp-snort',
+          name: 'TP SNORT.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/GLPI_Config.pdf',
-          meta: ['Type : Configuration', 'Taille : 12 Ko', 'Date : Oct 2025', 'Contexte : Entreprise'],
-          desc: 'Déploiement GLPI : inventaire FusionInventory, gestion de tickets helpdesk, reporting.',
-          tags: ['GLPI', 'FusionInventory', 'Helpdesk', 'ITIL']
+          fileUrl: 'docs/scolarite/TP SNORT.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP de détection et sécurité avec Snort.',
+          tags: ['Snort', 'Cybersécurité', 'ODT']
         },
         {
-          id: 'a2-virtualisation',
-          name: 'Infra_Virtuelle.vmx',
-          icon: '☁️',
+          id: 'a12-tp-supervision',
+          name: 'TP Supervision.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Infra_Virtuelle.pdf',
-          meta: ['Type : Config VMware', 'Taille : 4 Ko', 'Date : Nov 2025', 'Contexte : TP école'],
-          desc: 'Virtualisation avec VMware et Hyper-V : création de VMs, snapshots, migration, réseau virtuel.',
-          tags: ['VMware', 'Hyper-V', 'VirtualBox', 'ESXi']
+          fileUrl: 'docs/scolarite/TP Supervision.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'TP de supervision de services et équipements.',
+          tags: ['Supervision', 'Monitoring', 'ODT']
         },
         {
-          id: 'a2-portfolio',
-          name: 'Portfolio.html',
-          icon: '💻',
+          id: 'a12-windows-server',
+          name: 'Windows Server.odt',
+          icon: '📝',
           type: 'file',
-          fileUrl: 'docs/Portfolio.pdf',
-          meta: ['Type : Page Web', 'Taille : 156 Ko', 'Date : Fév 2026', 'Contexte : Personnel'],
-          desc: 'Création de ce portfolio interactif simulant un OS : HTML, CSS, JavaScript vanilla.',
-          tags: ['HTML5', 'CSS3', 'JavaScript', 'Portfolio']
+          fileUrl: 'docs/scolarite/Windows Server.odt',
+          meta: ['Type : OpenDocument (.odt)', 'Contexte : Scolarité'],
+          desc: 'Travaux sur Windows Server.',
+          tags: ['Windows Server', 'Système', 'ODT']
         }
       ]
     }
@@ -3321,6 +4051,10 @@ function onScolariteItemClick(itemId) {
         openBtn.style.display = 'none';
       }
     }
+
+    if (item.fileUrl) {
+      openDocumentViewer(item);
+    }
   }
 }
 
@@ -3355,6 +4089,24 @@ function openDocumentViewer(fileItem) {
   const fileName = fileItem.name;
   const fileUrl = fileItem.fileUrl;
   const icon = fileItem.icon || '📄';
+  const extension = (fileName.split('.').pop() || '').toLowerCase();
+  const isOdt = extension === 'odt';
+  const isOfficeDoc = ['doc', 'docx'].includes(extension);
+  const isPdf = extension === 'pdf';
+  const iframeSrc = isOfficeDoc
+    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(new URL(fileUrl, window.location.href).href)}`
+    : fileUrl;
+  const viewerTitle = isPdf ? 'Lecteur PDF' : 'Lecteur de document';
+  const odtPreviewId = `odt-preview-${winId}`;
+  const viewerContent = isOdt
+    ? `<div class="doc-viewer-frame odt-preview-frame" id="${odtPreviewId}"><div class="odt-preview-loading">Chargement de l'aperçu du document...</div></div>`
+    : `<iframe class="doc-viewer-frame" src="${iframeSrc}" title="${fileName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"></iframe>
+        <div class="doc-viewer-fallback" style="display:none;">
+          <div class="doc-viewer-fallback-icon">📄</div>
+          <div class="doc-viewer-fallback-title">${fileName}</div>
+          <div class="doc-viewer-fallback-text">Le document n'a pas pu être chargé dans l'aperçu intégré.<br>Utilisez <strong>Nouvel onglet</strong> ou <strong>Télécharger</strong>.</div>
+          <button class="doc-viewer-btn primary" onclick="openDocumentInNewTab('${fileUrl}', '${fileName}')" style="margin-top:0.5rem;">🔗 Ouvrir dans un nouvel onglet</button>
+        </div>`;
 
   const win = document.createElement('div');
   win.className = 'os-window focused';
@@ -3371,7 +4123,7 @@ function openDocumentViewer(fileItem) {
   win.innerHTML = `
     <div class="window-titlebar" data-drag="true">
       <span class="window-titlebar-icon">${icon}</span>
-      <span class="window-titlebar-text">${fileName} — Lecteur PDF</span>
+      <span class="window-titlebar-text">${fileName} — ${viewerTitle}</span>
       <div class="window-controls">
         <button class="window-ctrl-btn minimize-btn" onclick="minimizeWindow('${winId}')" title="Réduire">─</button>
         <button class="window-ctrl-btn maximize-btn" onclick="maximizeWindow('${winId}')" title="Agrandir">□</button>
@@ -3383,17 +4135,11 @@ function openDocumentViewer(fileItem) {
         <div class="doc-viewer-toolbar">
           <span class="doc-viewer-title">${icon} ${fileName}</span>
           <div class="doc-viewer-actions">
-            <button class="doc-viewer-btn" onclick="window.open('${fileUrl}', '_blank')">🔗 Nouvel onglet</button>
+            <button class="doc-viewer-btn" onclick="openDocumentInNewTab('${fileUrl}', '${fileName}')">🔗 Nouvel onglet</button>
             <button class="doc-viewer-btn primary" onclick="downloadDoc('${fileUrl}', '${fileName}')">⬇️ Télécharger</button>
           </div>
         </div>
-        <iframe class="doc-viewer-frame" src="${fileUrl}" title="${fileName}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"></iframe>
-        <div class="doc-viewer-fallback" style="display:none;">
-          <div class="doc-viewer-fallback-icon">📄</div>
-          <div class="doc-viewer-fallback-title">${fileName}</div>
-          <div class="doc-viewer-fallback-text">Le fichier PDF n'a pas pu être chargé.<br>Vérifiez que le fichier existe dans le dossier <strong>docs/</strong></div>
-          <button class="doc-viewer-btn primary" onclick="window.open('${fileUrl}', '_blank')" style="margin-top:0.5rem;">🔗 Ouvrir dans un nouvel onglet</button>
-        </div>
+        ${viewerContent}
       </div>
     </div>
     <div class="resize-handle" data-resize="true"></div>
@@ -3407,12 +4153,98 @@ function openDocumentViewer(fileItem) {
   initDrag(win, winId);
   if (!isMobile()) initResize(win);
   win.addEventListener('mousedown', () => focusWindow(winId));
+
+  if (isOdt) {
+    renderOdtPreview(fileUrl, odtPreviewId);
+  }
+}
+
+function openDocumentInNewTab(url, name = '') {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const isOfficeLike = ['odt', 'doc', 'docx'].includes(ext);
+
+  if (isOfficeLike) {
+    try {
+      const absoluteUrl = new URL(url, window.location.href).href;
+      const googleViewerUrl = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(absoluteUrl)}`;
+      const tab = window.open(googleViewerUrl, '_blank');
+      if (!tab) {
+        window.open(url, '_blank');
+      }
+      return;
+    } catch {
+      window.open(url, '_blank');
+      return;
+    }
+  }
+
+  window.open(url, '_blank');
+}
+
+let jsZipPromise = null;
+
+function ensureJsZip() {
+  if (window.JSZip) return Promise.resolve();
+  if (jsZipPromise) return jsZipPromise;
+  jsZipPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Impossible de charger JSZip'));
+    document.head.appendChild(script);
+  });
+  return jsZipPromise;
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function renderOdtPreview(fileUrl, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  try {
+    await ensureJsZip();
+    const response = await fetch(fileUrl);
+    if (!response.ok) throw new Error('Téléchargement du fichier impossible');
+    const buffer = await response.arrayBuffer();
+    const zip = await window.JSZip.loadAsync(buffer);
+    const contentFile = zip.file('content.xml');
+    if (!contentFile) throw new Error('Structure ODT invalide');
+
+    const xml = await contentFile.async('string');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'application/xml');
+    const paragraphNodes = Array.from(doc.getElementsByTagNameNS('*', 'p'));
+    const headingNodes = Array.from(doc.getElementsByTagNameNS('*', 'h'));
+    const listNodes = Array.from(doc.getElementsByTagNameNS('*', 'list-item'));
+
+    const lines = [...headingNodes, ...paragraphNodes, ...listNodes]
+      .map(node => (node.textContent || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    if (!lines.length) {
+      container.innerHTML = `<div class="odt-preview-error">Aucun contenu texte lisible trouvé dans ce document.</div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="odt-preview-doc">${lines.map(line => `<p>${escapeHtml(line)}</p>`).join('')}</div>`;
+  } catch (error) {
+    container.innerHTML = `<div class="odt-preview-error">Aperçu indisponible pour ce document.<br>Utilisez <strong>Nouvel onglet</strong> ou <strong>Télécharger</strong>.</div>`;
+    showNotification('⚠️ Prévisualisation', 'Impossible d’afficher ce fichier en aperçu intégré.');
+  }
 }
 
 function downloadDoc(url, name) {
   const a = document.createElement('a');
   a.href = url;
-  a.download = name.replace(/\.[^.]+$/, '') + '.pdf';
+  const fallbackName = (url.split('/').pop() || 'document').split('?')[0];
+  a.download = name || fallbackName;
   a.target = '_blank';
   document.body.appendChild(a);
   a.click();
@@ -3423,6 +4255,16 @@ function downloadDoc(url, name) {
 // ============================
 // PROJETS DATA & LOGIC
 // ============================
+// Référentiel des compétences E4 (bloc "Support et mise à disposition de services informatiques")
+const competencesE4 = {
+  'C1': 'Gérer le patrimoine informatique',
+  'C2': 'Répondre aux incidents et aux demandes d\'assistance et d\'évolution',
+  'C3': 'Développer la présence en ligne de l\'organisation',
+  'C4': 'Travailler en mode projet',
+  'C5': 'Mettre à disposition des utilisateurs un service informatique',
+  'C6': 'Organiser son développement professionnel'
+};
+
 const projetsData = [
   // ─── 🎓 ÉCOLE ───
   {
@@ -3430,49 +4272,56 @@ const projetsData = [
     context: 'ecole', category: 'Réseau & Télécom',
     desc: 'Travaux pratiques de configuration de routeurs et switchs Cisco : VLAN, routage inter-VLAN, ACL, NAT/PAT, protocoles OSPF et EIGRP sur Packet Tracer.',
     tags: ['Cisco', 'VLAN', 'OSPF', 'Packet Tracer'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C5']
   },
   {
     icon: '📡', title: 'Mise en place Active Directory',
     context: 'ecole', category: 'Systèmes & Infrastructure',
     desc: 'TP de déploiement d\'un domaine AD : création d\'OU, gestion des utilisateurs/groupes, stratégies GPO, DNS et DHCP intégrés.',
     tags: ['Windows Server', 'AD DS', 'GPO', 'DNS'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C5']
   },
   {
     icon: '🐧', title: 'Administration Linux',
     context: 'ecole', category: 'Systèmes & Infrastructure',
     desc: 'Cours et TP sur l\'administration de serveurs Debian/Ubuntu : gestion des services (Apache, Bind9, DHCP), scripting Bash, permissions et pare-feu.',
     tags: ['Debian', 'Bash', 'Apache', 'iptables'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C5']
   },
   {
     icon: '🛡️', title: 'Initiation Cybersécurité',
     context: 'ecole', category: 'Cybersécurité',
     desc: 'Module de sensibilisation à la cybersécurité : scan de ports avec Nmap, analyse de trames avec Wireshark, identification de vulnérabilités.',
     tags: ['Nmap', 'Wireshark', 'Sécurité', 'Analyse'],
-    date: '2025', status: 'done'
+    date: '2025', status: 'done',
+    competences: ['C1', 'C2', 'C6']
   },
   {
     icon: '💾', title: 'Base de Données SQL',
     context: 'ecole', category: 'Développement',
     desc: 'Conception et manipulation de bases de données relationnelles : modélisation MCD/MLD, requêtes SQL avancées, jointures, vues et procédures stockées.',
     tags: ['MySQL', 'SQL', 'MCD', 'PhpMyAdmin'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C5']
   },
   {
     icon: '🐍', title: 'Programmation Python',
     context: 'ecole', category: 'Développement',
     desc: 'Cours de programmation Python : algorithmique, structures de données, scripts d\'automatisation, interaction avec fichiers et API.',
     tags: ['Python 3', 'Algorithmique', 'Scripting'],
-    date: '2024-2025', status: 'done'
+    date: '2024-2025', status: 'done',
+    competences: ['C4', 'C6']
   },
   {
     icon: '📋', title: 'Projet d\'Épreuve E5',
     context: 'ecole', category: 'Projets BTS',
     desc: 'Projet professionnel pour l\'épreuve E5 du BTS SIO : conception, réalisation et documentation d\'une solution d\'infrastructure réseau complète.',
     tags: ['BTS SIO', 'E5', 'Documentation', 'Infrastructure'],
-    date: '2025', status: 'progress'
+    date: '2025', status: 'progress',
+    competences: ['C1', 'C4', 'C5']
   },
 
   // ─── 🏢 ENTREPRISE ───
@@ -3481,42 +4330,48 @@ const projetsData = [
     context: 'entreprise', category: 'Gestion de Parc',
     desc: 'Installation et configuration de GLPI pour la gestion du parc informatique : inventaire automatisé via FusionInventory, gestion des tickets et suivi des actifs.',
     tags: ['GLPI', 'FusionInventory', 'ITSM', 'Helpdesk'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C2', 'C5']
   },
   {
     icon: '📡', title: 'Administration Active Directory',
     context: 'entreprise', category: 'Infrastructure',
     desc: 'Gestion quotidienne de l\'AD en production : création de comptes, gestion des droits, GPO de sécurité, scripts PowerShell d\'automatisation des tâches récurrentes.',
     tags: ['AD', 'PowerShell', 'GPO', 'Production'],
-    date: '2024-2025', status: 'done'
+    date: '2024-2025', status: 'done',
+    competences: ['C1', 'C2', 'C5']
   },
   {
     icon: '☁️', title: 'Infrastructure VMware',
     context: 'entreprise', category: 'Virtualisation',
     desc: 'Administration de l\'infrastructure VMware ESXi/vSphere : création et gestion de VMs, snapshots, surveillance des ressources, migration et maintenance.',
     tags: ['VMware', 'ESXi', 'vSphere', 'VMs'],
-    date: '2024', status: 'done'
+    date: '2024', status: 'done',
+    competences: ['C1', 'C5']
   },
   {
     icon: '🎫', title: 'Support Utilisateurs N1/N2',
     context: 'entreprise', category: 'Support & Helpdesk',
     desc: 'Résolution de tickets de support de niveau 1 et 2 : diagnostic réseau, dépannage postes de travail, gestion des imprimantes, assistance à distance.',
     tags: ['Helpdesk', 'Diagnostic', 'Support', 'Ticketing'],
-    date: '2024-2025', status: 'done'
+    date: '2024-2025', status: 'done',
+    competences: ['C2', 'C5']
   },
   {
     icon: '🌐', title: 'Maintenance Réseau',
     context: 'entreprise', category: 'Réseau',
     desc: 'Participation à la maintenance de l\'infrastructure réseau : câblage, configuration switchs, diagnostic de pannes, surveillance avec outils de monitoring.',
     tags: ['Réseau', 'Switch', 'Monitoring', 'Câblage'],
-    date: '2024-2025', status: 'done'
+    date: '2024-2025', status: 'done',
+    competences: ['C1', 'C2']
   },
   {
     icon: '🔐', title: 'Durcissement Sécurité',
     context: 'entreprise', category: 'Sécurité',
     desc: 'Participation au renforcement de la sécurité du SI : mise à jour des politiques de mots de passe, audit des accès, configuration pare-feu, sensibilisation utilisateurs. Mise en place de VPN avec tunnels SSL et IPsec, ainsi que déploiement de l\'antivirus ESET sur le parc informatique.',
     tags: ['Sécurité', 'Pare-feu', 'Audit', 'Hardening', 'VPN SSL', 'IPsec', 'ESET'],
-    date: '2025', status: 'progress'
+    date: '2025', status: 'progress',
+    competences: ['C1', 'C2', 'C5']
   },
 
   // ─── 🏠 PERSONNEL ───
@@ -3525,14 +4380,32 @@ const projetsData = [
     context: 'perso', category: 'Cybersécurité',
     desc: 'Environnement de test personnel pour la pratique du pentest : machines vulnérables (HackTheBox, TryHackMe), outils Kali Linux. Utilisation de Windows Sandbox comme bac à sable isolé pour analyser des fichiers suspects et tester l\'exploitation de failles de sécurité en toute sécurité.',
     tags: ['Kali Linux', 'HackTheBox', 'TryHackMe', 'Pentest', 'Windows Sandbox'],
-    date: '2025', status: 'done'
+    date: '2025', status: 'done',
+    competences: ['C2', 'C6']
   },
   {
     icon: '💻', title: 'Serveur personnel',
     context: 'perso', category: 'Infrastructure',
     desc: 'Mise en place d\'un serveur personnel pour apprendre et expérimenter : virtualisation avec Proxmox, déploiement de services essentiels (DHCP, Active Directory), serveur de fichiers (SRV APP) et serveur TSE pour l\'accès bureau à distance.',
     tags: ['Proxmox', 'DHCP', 'Active Directory', 'TSE', 'Serveur de fichiers'],
-    date: '2024-2025', status: 'done'
+    date: '2024-2025', status: 'done',
+    competences: ['C1', 'C4', 'C5']
+  },
+  {
+    icon: '🌍', title: 'Portfolio interactif (ce site)',
+    context: 'perso', category: 'Présence en ligne',
+    desc: 'Conception et développement de ce portfolio web interactif simulant un environnement OS : HTML5, CSS3, JavaScript vanilla. Mise en ligne et référencement pour développer ma présence professionnelle en ligne.',
+    tags: ['HTML5', 'CSS3', 'JavaScript', 'Portfolio', 'Web'],
+    date: '2025-2026', status: 'done',
+    competences: ['C3', 'C4', 'C6']
+  },
+  {
+    icon: '📚', title: 'Veille technologique',
+    context: 'perso', category: 'Développement professionnel',
+    desc: 'Organisation d\'une veille technologique structurée : suivi de flux RSS (Feedly), forums spécialisés, newsletters cybersécurité, plateformes d\'autoformation (HackTheBox, TryHackMe), documentation technique et certifications.',
+    tags: ['Veille', 'RSS', 'Feedly', 'Autoformation', 'Certifications'],
+    date: '2024-2026', status: 'progress',
+    competences: ['C6']
   }
 ];
 
@@ -3594,6 +4467,9 @@ function renderProjets(filter) {
               <span class="projet-card-context ${p.context}">${contextLabels[p.context]}</span>
             </div>
             <div class="projet-card-desc">${p.desc}</div>
+            <div class="projet-card-competences">
+              ${(p.competences || []).map(c => `<span class="projet-card-comp" title="${competencesE4[c]}">${c}</span>`).join('')}
+            </div>
             <div class="projet-card-footer">
               ${p.tags.map(t => `<span class="projet-card-tag">${t}</span>`).join('')}
               <span class="projet-card-date">📅 ${p.date}</span>
@@ -3930,6 +4806,50 @@ function downloadCV() {
 }
 
 // ============================
+// CV VIEWER INIT
+// ============================
+function initCvViewer() {
+  const iframe = document.getElementById('cvIframe');
+  const fallback = document.getElementById('cvFallback');
+  if (!iframe || !fallback) return;
+  iframe.addEventListener('error', function() {
+    iframe.style.display = 'none';
+    fallback.style.display = 'flex';
+  });
+  setTimeout(function() {
+    try {
+      if (iframe.clientHeight < 10) {
+        iframe.style.display = 'none';
+        fallback.style.display = 'flex';
+      }
+    } catch(e) { /* cross-origin, PDF is likely loaded fine */ }
+  }, 3000);
+}
+
+// ============================
+// TABLEAU DE SYNTHÈSE E4
+// ============================
+function initSynthese() {
+  const tbody = document.getElementById('syntheseBody');
+  if (!tbody) return;
+  const contextLabels = { ecole: '🎓 École', entreprise: '🏢 Entreprise', perso: '🏠 Personnel' };
+  const statusColors = { done: 'var(--accent-green)', progress: 'var(--accent-yellow)', planned: 'var(--text-muted)' };
+  const statusLabels = { done: 'Terminé', progress: 'En cours', planned: 'Planifié' };
+  let html = '';
+  projetsData.forEach(p => {
+    const comps = (p.competences || []).map(c => `<span class="synthese-comp-badge" title="${competencesE4[c]}">${c}</span>`).join(' ');
+    html += `<tr>
+      <td><strong>${p.icon} ${p.title}</strong></td>
+      <td>${contextLabels[p.context] || p.context}</td>
+      <td>${comps}</td>
+      <td>${p.date}</td>
+      <td><span class="synthese-status-dot" style="background:${statusColors[p.status]}"></span> ${statusLabels[p.status]}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ============================
 // WINDOW MANAGEMENT
 // ============================
 function openWindow(id) {
@@ -3997,6 +4917,8 @@ function openWindow(id) {
   if (id === 'terminal') initTerminal();
   if (id === 'projets') initProjets();
   if (id === 'scolarite') initScolarite();
+  if (id === 'cv') initCvViewer();
+  if (id === 'synthese') initSynthese();
 
   // Click to focus
   win.addEventListener('mousedown', () => focusWindow(id));
@@ -4446,76 +5368,549 @@ function escapeHtml(str) {
 }
 
 // ============================
-// AUTODESTRUCTION
+// AUTODESTRUCTION — INSANE MODE
 // ============================
 function triggerSelfDestruct() {
   if (state.selfDestructActive) return;
   state.selfDestructActive = true;
 
-  const overlay = document.getElementById('glitchOverlay');
-  const text = document.getElementById('glitchText');
+  // Audio context for alarm/explosion sounds
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const actx = new AudioCtx();
+
+  function playAlarm(duration) {
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(880, actx.currentTime);
+    osc.frequency.linearRampToValueAtTime(440, actx.currentTime + 0.5);
+    osc.frequency.linearRampToValueAtTime(880, actx.currentTime + 1);
+    gain.gain.setValueAtTime(0.15, actx.currentTime);
+    osc.connect(gain).connect(actx.destination);
+    osc.start();
+    const loop = setInterval(() => {
+      osc.frequency.setValueAtTime(880, actx.currentTime);
+      osc.frequency.linearRampToValueAtTime(440, actx.currentTime + 0.5);
+      osc.frequency.linearRampToValueAtTime(880, actx.currentTime + 1);
+    }, 1000);
+    setTimeout(() => { clearInterval(loop); osc.stop(); }, duration);
+    return { osc, gain };
+  }
+
+  function playExplosion() {
+    const bufferSize = actx.sampleRate * 1.5;
+    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) { data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.5); }
+    const source = actx.createBufferSource();
+    source.buffer = buffer;
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(0.6, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.5);
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 600;
+    source.connect(filter).connect(gain).connect(actx.destination);
+    source.start();
+  }
+
+  function playGlitchNoise(dur) {
+    const bufSize = actx.sampleRate * dur;
+    const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) d[i] = (Math.random() * 2 - 1) * 0.1;
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.08, actx.currentTime);
+    src.connect(g).connect(actx.destination);
+    src.start();
+    return src;
+  }
+
+  function playBoot() {
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, actx.currentTime);
+    osc.frequency.linearRampToValueAtTime(1200, actx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, actx.currentTime + 0.3);
+    osc.connect(gain).connect(actx.destination);
+    osc.start(); osc.stop(actx.currentTime + 0.3);
+  }
+
+  // === REFS ===
+  const warning = document.getElementById('sdWarning');
+  const countdown = document.getElementById('sdCountdown');
+  const progress = document.getElementById('sdProgress');
+  const glitchLayer = document.getElementById('sdGlitchLayer');
+  const glitchText = document.getElementById('sdGlitchText');
+  const matrixCanvas = document.getElementById('sdMatrixCanvas');
   const fireContainer = document.getElementById('fireParticles');
+  const blackhole = document.getElementById('sdBlackhole');
+  const bhRing = document.getElementById('sdBlackholeRing');
+  const bsod = document.getElementById('sdBsod');
+  const bsodPercent = document.getElementById('sdBsodPercent');
+  const reboot = document.getElementById('sdReboot');
+  const rebootText = document.getElementById('sdRebootText');
+  const flash = document.getElementById('sdFlash');
 
-  overlay.classList.add('active');
-  text.classList.add('active');
-
-  // Fire particles
-  const colors = ['#ff5252', '#ff9800', '#ffc107', '#ff5722'];
-  let particleInterval = setInterval(() => {
-    for (let i = 0; i < 5; i++) {
-      const p = document.createElement('div');
-      p.className = 'fire-particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.bottom = '0px';
-      p.style.background = colors[Math.floor(Math.random() * colors.length)];
-      p.style.width = p.style.height = (4 + Math.random() * 8) + 'px';
-      p.style.animationDuration = (0.8 + Math.random() * 1.2) + 's';
-      fireContainer.appendChild(p);
-      setTimeout(() => p.remove(), 2000);
+  // === MATRIX RAIN ===
+  const mCtx = matrixCanvas.getContext('2d');
+  matrixCanvas.width = window.innerWidth;
+  matrixCanvas.height = window.innerHeight;
+  const mCols = Math.floor(matrixCanvas.width / 14);
+  const mDrops = Array(mCols).fill(1);
+  const mChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ';
+  let matrixRunning = false;
+  function drawMatrix() {
+    if (!matrixRunning) return;
+    mCtx.fillStyle = 'rgba(0,0,0,0.05)';
+    mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+    mCtx.fillStyle = '#0f0';
+    mCtx.font = '14px monospace';
+    for (let i = 0; i < mDrops.length; i++) {
+      const ch = mChars[Math.floor(Math.random() * mChars.length)];
+      const x = i * 14, y = mDrops[i] * 14;
+      mCtx.fillStyle = Math.random() > 0.9 ? '#fff' : (Math.random() > 0.5 ? '#0f0' : '#0a0');
+      mCtx.fillText(ch, x, y);
+      if (y > matrixCanvas.height && Math.random() > 0.975) mDrops[i] = 0;
+      mDrops[i]++;
     }
-  }, 50);
+    requestAnimationFrame(drawMatrix);
+  }
 
-  // Shake effect
-  document.body.style.animation = 'shake 0.1s infinite';
-  const shakeStyle = document.createElement('style');
-  shakeStyle.textContent = `
-    @keyframes shake {
-      0% { transform: translate(0); }
-      25% { transform: translate(-3px, 2px); }
-      50% { transform: translate(3px, -2px); }
-      75% { transform: translate(-2px, -3px); }
-      100% { transform: translate(2px, 3px); }
+  // === FIRE PARTICLES ===
+  const fireColors = ['#ff1744', '#ff9100', '#ffea00', '#ff5722', '#ff3d00', '#dd2c00'];
+  let particleInterval;
+  function startFire(intensity) {
+    particleInterval = setInterval(() => {
+      for (let i = 0; i < intensity; i++) {
+        const p = document.createElement('div');
+        p.className = 'fire-particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = '0';
+        p.style.background = fireColors[Math.floor(Math.random() * fireColors.length)];
+        const size = (4 + Math.random() * 12) + 'px';
+        p.style.width = p.style.height = size;
+        p.style.animationDuration = (0.6 + Math.random() * 1.4) + 's';
+        p.style.filter = 'blur(' + Math.random() * 2 + 'px)';
+        fireContainer.appendChild(p);
+        setTimeout(() => p.remove(), 2500);
+      }
+    }, 30);
+  }
+  function stopFire() { clearInterval(particleInterval); fireContainer.innerHTML = ''; }
+
+  // === CORRUPTION BARS ===
+  function spawnCorruptBars() {
+    const bars = [];
+    const iv = setInterval(() => {
+      const bar = document.createElement('div');
+      bar.className = 'sd-corrupt-bar';
+      bar.style.top = Math.random() * 100 + '%';
+      bar.style.width = (30 + Math.random() * 70) + '%';
+      bar.style.height = (1 + Math.random() * 6) + 'px';
+      bar.style.background = ['#ff0040','#00ff88','#4040ff','#ff0','#f0f'][Math.floor(Math.random()*5)];
+      bar.style.opacity = 0.3 + Math.random() * 0.5;
+      bar.style.left = Math.random() * 30 + '%';
+      document.body.appendChild(bar);
+      bars.push(bar);
+      setTimeout(() => bar.remove(), 200);
+    }, 40);
+    return () => { clearInterval(iv); bars.forEach(b => b.remove()); };
+  }
+
+  // === PHASE 1: WARNING + COUNTDOWN (0 → 3s) ===
+  const alarm = playAlarm(3000);
+  warning.classList.add('active');
+  let count = 3;
+  countdown.textContent = count;
+  progress.style.width = '0%';
+
+  const countdownIv = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdown.textContent = count;
+      countdown.style.transform = 'scale(1.5)';
+      setTimeout(() => countdown.style.transform = '', 200);
+      progress.style.width = ((3 - count) / 3 * 100) + '%';
+    } else if (count === 0) {
+      countdown.textContent = '0';
+      countdown.style.color = '#ff1744';
+      progress.style.width = '100%';
     }
-  `;
-  document.head.appendChild(shakeStyle);
+  }, 1000);
 
-  // Stop after 4 seconds
+  // === PHASE 2: GLITCH CHAOS (3s → 7s) ===
   setTimeout(() => {
-    overlay.classList.remove('active');
-    text.classList.remove('active');
-    clearInterval(particleInterval);
-    fireContainer.innerHTML = '';
-    document.body.style.animation = '';
-    shakeStyle.remove();
-    state.selfDestructActive = false;
-    showNotification('✅ Système restauré', 'Autodestruction annulée. Le portfolio est intact !');
-  }, 4000);
+    clearInterval(countdownIv);
+    warning.classList.remove('active');
+
+    // Glitch layer ON
+    glitchLayer.classList.add('active');
+    document.body.classList.add('sd-shaking');
+    const glitchNoise = playGlitchNoise(4);
+
+    // Matrix rain
+    matrixRunning = true;
+    matrixCanvas.classList.add('active');
+    drawMatrix();
+
+    // Fire starts small
+    startFire(8);
+
+    // Glitch text cycle
+    const glitchMessages = [
+      'SYSTEM FAILURE', 'CORRUPTION DETECTED', 'DELETING C:\\\\*.*',
+      'KERNEL PANIC', 'MEMORY OVERFLOW', 'FORMAT DISK...',
+      '💀 GOODBYE 💀', 'rm -rf / --no-preserve-root', 'ERR: BRAIN NOT FOUND',
+      '0x000000DEAD', 'NUCLEAR MELTDOWN'
+    ];
+    let msgIdx = 0;
+    glitchText.classList.add('active');
+    const glitchMsgIv = setInterval(() => {
+      glitchText.textContent = glitchMessages[msgIdx % glitchMessages.length];
+      msgIdx++;
+    }, 350);
+
+    // Spawn corruption bars
+    const stopCorrupt = spawnCorruptBars();
+
+    // Random error popups
+    function spawnErrorPopup() {
+      const popup = document.createElement('div');
+      popup.style.cssText = `
+        position:fixed; z-index:100001;
+        top:${10 + Math.random()*60}%; left:${5 + Math.random()*60}%;
+        background:#1a1a2e; border:2px solid #ff1744; border-radius:8px;
+        padding:15px 20px; font-family:var(--font-mono); color:#fff;
+        font-size:0.8rem; box-shadow: 0 0 30px rgba(255,0,0,0.3);
+        animation: sdGlitchText 0.2s steps(3) infinite;
+        pointer-events:none;
+      `;
+      const msgs = [
+        '❌ FATAL ERROR: portfolio.exe has stopped working',
+        '⚠️ WARNING: Temperature critical 9999°C',
+        '💀 ERROR 0xDEADBEEF: Reality not found',
+        '🔥 DISK ON FIRE — Please do not panic',
+        '☠️ CRITICAL: All data will be erased',
+        '🚨 BREACH DETECTED: Firewall destroyed',
+        '💣 DETONATION SEQUENCE LOCKED',
+        '⛔ ACCESS DENIED: You cannot stop this'
+      ];
+      popup.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 800 + Math.random() * 600);
+    }
+    const errorIv = setInterval(spawnErrorPopup, 300);
+
+    // === PHASE 3: ESCALATION — More fire, harder shake (5s) ===
+    setTimeout(() => {
+      stopFire();
+      startFire(25);
+      document.body.classList.remove('sd-shaking');
+      document.body.classList.add('sd-shaking-hard');
+      glitchText.textContent = '💀 POINT OF NO RETURN 💀';
+      glitchText.style.fontSize = 'clamp(2rem,7vw,5rem)';
+      glitchText.style.color = '#ff1744';
+    }, 2000);
+
+    // === PHASE 4: BLACK HOLE (7s) ===
+    setTimeout(() => {
+      clearInterval(glitchMsgIv);
+      clearInterval(errorIv);
+      stopCorrupt();
+      glitchText.classList.remove('active');
+      glitchLayer.classList.remove('active');
+      matrixRunning = false;
+      matrixCanvas.classList.remove('active');
+      stopFire();
+      document.body.classList.remove('sd-shaking-hard');
+
+      playExplosion();
+
+      // Suck all windows & icons toward center
+      const targets = document.querySelectorAll('.window, .desktop-icon, .taskbar, .start-menu');
+      targets.forEach((el, i) => {
+        el.classList.add('sd-sucking');
+        setTimeout(() => el.classList.add('sd-sucked'), 100 + i * 50);
+      });
+
+      // Black hole appears
+      bhRing.classList.add('active');
+      setTimeout(() => {
+        bhRing.classList.remove('active');
+        blackhole.classList.add('active');
+
+        // Nuclear flash at peak
+        setTimeout(() => {
+          playExplosion();
+          flash.classList.add('active');
+          setTimeout(() => {
+            flash.classList.add('fade');
+
+            // === PHASE 5: BSOD (10s) ===
+            setTimeout(() => {
+              flash.classList.remove('active', 'fade');
+              blackhole.classList.remove('active');
+              blackhole.style.width = '0';
+              blackhole.style.height = '0';
+              bsod.classList.add('active');
+
+              let percent = 0;
+              const bsodIv = setInterval(() => {
+                percent += Math.floor(1 + Math.random() * 8);
+                if (percent > 100) percent = 100;
+                bsodPercent.innerHTML = '<span class="sd-bsod-spinner"></span>' + percent + '% complete';
+                if (percent >= 100) {
+                  clearInterval(bsodIv);
+
+                  // === PHASE 6: REBOOT SEQUENCE (14s) ===
+                  setTimeout(() => {
+                    bsod.classList.remove('active');
+                    reboot.classList.add('active');
+                    playBoot();
+
+                    const bootLines = [
+                      'BIOS v4.2.0 — Aymen Systems Inc.',
+                      'Checking memory... 16384 MB OK',
+                      'Detecting hardware...',
+                      '  > GPU: RTX PORTFOLIO 9090 Ti ✓',
+                      '  > CPU: Aymen-Core i42 @ 6.9GHz ✓',
+                      '  > SSD: 1TB Achievement Drive ✓',
+                      '  > NETWORK: Ethernet Konvergence ✓',
+                      '',
+                      'Loading kernel... aymen_portfolio.sys',
+                      'Mounting /dev/creativity... OK',
+                      'Initializing talent.dll... OK',
+                      'Loading motivation.service... [MAXIMUM]',
+                      'Restoring desktop environment...',
+                      '',
+                      '  ██████████████████████████ 100%',
+                      '',
+                      'System restored successfully.',
+                      'Welcome back. 🚀',
+                    ];
+                    let lineIdx = 0;
+                    const typeIv = setInterval(() => {
+                      if (lineIdx < bootLines.length) {
+                        const line = document.createElement('div');
+                        line.textContent = bootLines[lineIdx];
+                        if (bootLines[lineIdx].includes('✓') || bootLines[lineIdx].includes('OK') || bootLines[lineIdx].includes('100%')) {
+                          line.style.color = '#00ff41';
+                        }
+                        if (bootLines[lineIdx].includes('MAXIMUM')) {
+                          line.style.color = '#ffea00';
+                          line.style.fontWeight = 'bold';
+                        }
+                        if (bootLines[lineIdx].includes('Welcome')) {
+                          line.style.color = '#64ffda';
+                          line.style.fontSize = '1.2em';
+                          line.style.marginTop = '10px';
+                        }
+                        rebootText.appendChild(line);
+                        lineIdx++;
+                        playBoot();
+                      } else {
+                        clearInterval(typeIv);
+                        const cursor = document.createElement('span');
+                        cursor.className = 'sd-reboot-cursor';
+                        rebootText.lastChild.appendChild(cursor);
+
+                        // === PHASE 7: RESTORE (18s) ===
+                        setTimeout(() => {
+                          reboot.classList.remove('active');
+                          rebootText.innerHTML = '';
+
+                          // Restore all elements
+                          document.querySelectorAll('.sd-sucked').forEach(el => {
+                            el.classList.remove('sd-sucking', 'sd-sucked');
+                            el.style.transform = '';
+                            el.style.opacity = '';
+                          });
+
+                          // Reset all glitch text styles
+                          glitchText.style.fontSize = '';
+                          glitchText.style.color = '';
+
+                          // Clear matrix canvas
+                          mCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+                          state.selfDestructActive = false;
+                          showNotification('🚀 Système restauré', 'Autodestruction annulée. Le portfolio est intact... cette fois.');
+                          actx.close();
+                        }, 2500);
+                      }
+                    }, 200);
+                  }, 1500);
+                }
+              }, 150);
+            }, 500);
+          }, 1500);
+        }, 800);
+      }, 1500);
+    }, 4000);
+  }, 3000);
 }
 
 // ============================
-// DESKTOP ICON SELECTION
+// DESKTOP ICON DRAG & GRID
 // ============================
-document.querySelectorAll('.desktop-icon').forEach(icon => {
-  // Single tap to open on mobile, click to select on desktop
-  icon.addEventListener('click', function(e) {
-    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
-    this.classList.add('selected');
-    if (isMobile()) {
-      const winId = this.dataset.window;
-      if (winId) openWindow(winId);
+(function initDesktopIcons() {
+  const GRID_W = 100, GRID_H = 100;
+  const container = document.querySelector('.desktop-icons');
+  const icons = document.querySelectorAll('.desktop-icon');
+  const STORAGE_KEY = 'desktopIconPositions';
+
+  function getGridArea() {
+    const rect = container.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
+  }
+
+  function snapToGrid(x, y) {
+    const area = getGridArea();
+    const col = Math.round(x / GRID_W);
+    const row = Math.round(y / GRID_H);
+    const maxCol = Math.floor((area.w - 90) / GRID_W);
+    const maxRow = Math.floor((area.h - 80) / GRID_H);
+    return {
+      x: Math.max(0, Math.min(col, maxCol)) * GRID_W,
+      y: Math.max(0, Math.min(row, maxRow)) * GRID_H
+    };
+  }
+
+  function isOccupied(x, y, excludeIcon) {
+    for (const ic of icons) {
+      if (ic === excludeIcon) continue;
+      if (parseInt(ic.style.left) === x && parseInt(ic.style.top) === y) return true;
     }
+    return false;
+  }
+
+  function posKey(icon) { return icon.dataset.window; }
+
+  function savePositions() {
+    const data = {};
+    icons.forEach(icon => {
+      data[posKey(icon)] = { x: parseInt(icon.style.left), y: parseInt(icon.style.top) };
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  }
+
+  function loadPositions() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return null;
+  }
+
+  function layoutDefault() {
+    const area = getGridArea();
+    const maxRows = Math.floor(area.h / GRID_H) || 6;
+    let col = 0, row = 0;
+    icons.forEach(icon => {
+      const pos = snapToGrid(col * GRID_W, row * GRID_H);
+      icon.style.left = pos.x + 'px';
+      icon.style.top = pos.y + 'px';
+      row++;
+      if (row >= maxRows) { row = 0; col++; }
+    });
+    savePositions();
+  }
+
+  function restoreOrLayout() {
+    const saved = loadPositions();
+    if (saved) {
+      let allFound = true;
+      icons.forEach(icon => {
+        const key = posKey(icon);
+        if (saved[key]) {
+          const pos = snapToGrid(saved[key].x, saved[key].y);
+          icon.style.left = pos.x + 'px';
+          icon.style.top = pos.y + 'px';
+        } else { allFound = false; }
+      });
+      if (!allFound) layoutDefault();
+    } else {
+      layoutDefault();
+    }
+  }
+
+  restoreOrLayout();
+  window.addEventListener('resize', () => {
+    // Re-snap all icons within bounds
+    icons.forEach(icon => {
+      const pos = snapToGrid(parseInt(icon.style.left) || 0, parseInt(icon.style.top) || 0);
+      icon.style.left = pos.x + 'px';
+      icon.style.top = pos.y + 'px';
+    });
+    savePositions();
   });
-});
+
+  // Drag logic
+  icons.forEach(icon => {
+    let isDragging = false, startX, startY, origX, origY, hasMoved;
+
+    function onPointerDown(e) {
+      if (e.button && e.button !== 0) return;
+      e.preventDefault();
+      isDragging = true;
+      hasMoved = false;
+      const pt = e.touches ? e.touches[0] : e;
+      startX = pt.clientX;
+      startY = pt.clientY;
+      origX = parseInt(icon.style.left) || 0;
+      origY = parseInt(icon.style.top) || 0;
+      icon.classList.add('dragging');
+      document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+      icon.classList.add('selected');
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      const pt = e.touches ? e.touches[0] : e;
+      const dx = pt.clientX - startX;
+      const dy = pt.clientY - startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
+      if (!hasMoved) return;
+      icon.style.left = (origX + dx) + 'px';
+      icon.style.top = (origY + dy) + 'px';
+    }
+
+    function onPointerUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      icon.classList.remove('dragging');
+      if (hasMoved) {
+        const pos = snapToGrid(parseInt(icon.style.left), parseInt(icon.style.top));
+        if (isOccupied(pos.x, pos.y, icon)) {
+          // Spot taken — return to original position
+          icon.style.left = origX + 'px';
+          icon.style.top = origY + 'px';
+        } else {
+          icon.style.left = pos.x + 'px';
+          icon.style.top = pos.y + 'px';
+        }
+        savePositions();
+      } else {
+        // It was a click, not a drag
+        if (isMobile()) {
+          const winId = icon.dataset.window;
+          if (winId) openWindow(winId);
+        }
+      }
+    }
+
+    icon.addEventListener('mousedown', onPointerDown);
+    icon.addEventListener('touchstart', onPointerDown, { passive: false });
+    document.addEventListener('mousemove', onPointerMove);
+    document.addEventListener('touchmove', onPointerMove, { passive: false });
+    document.addEventListener('mouseup', onPointerUp);
+    document.addEventListener('touchend', onPointerUp);
+  });
+})();
 
 // Click on desktop to deselect
 document.getElementById('desktop').addEventListener('click', function(e) {
